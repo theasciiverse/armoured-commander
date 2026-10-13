@@ -1,0 +1,21 @@
+[package]
+name = "armoured-commander"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+description = "Armoured Commander, the WWII tank commander roguelike, ported to the terminal for the Asciiverse catalog"
+license = "GPL-3.0-or-later"
+publish = false
+
+[[bin]]
+name = "armcom"
+path = "src/main.rs"
+
+[dependencies]
+ratatui = "0.30"
+log = "0.4"
+env_logger = "0.11"
+flate2 = "1"
+
+[profile.release]
+debug = 1
