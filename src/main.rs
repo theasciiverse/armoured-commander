@@ -6,6 +6,7 @@ mod campaign;
 mod color;
 mod combat;
 mod console;
+mod credits;
 mod crew;
 mod defs;
 mod draw;
@@ -51,6 +52,7 @@ const NOTE_FOR: Duration = Duration::from_secs(3);
 
 enum Mode {
     Menu(Box<MainMenu>),
+    Credits(Box<credits::Credits>),
     Art { index: usize, con: Console },
 }
 
@@ -58,6 +60,7 @@ impl Mode {
     fn name(&self) -> String {
         match self {
             Mode::Menu(_) => "menu".into(),
+            Mode::Credits(_) => "credits".into(),
             Mode::Art { index, .. } => format!("art {}", xp::FILES[*index].0),
         }
     }
@@ -113,8 +116,14 @@ fn run(terminal: &mut ratatui::DefaultTerminal, mut mode: Mode, rng: &mut Rng) -
     let mut note: Option<(String, Instant)> = None;
     let mut snapshot = Instant::now();
     loop {
-        if let Mode::Menu(menu) = &mut mode {
-            menu.tick(rng);
+        match &mut mode {
+            Mode::Menu(menu) => {
+                menu.tick(rng);
+            }
+            Mode::Credits(c) => {
+                c.tick();
+            }
+            _ => {}
         }
         if note.as_ref().is_some_and(|(_, at)| at.elapsed() > NOTE_FOR) {
             note = None;
@@ -124,6 +133,7 @@ fn run(terminal: &mut ratatui::DefaultTerminal, mut mode: Mode, rng: &mut Rng) -
             let buf = frame.buffer_mut();
             let (con, caption) = match &mode {
                 Mode::Menu(menu) => (&menu.con, note.as_ref().map(|(n, _)| n.clone())),
+                Mode::Credits(c) => (&c.con, None),
                 Mode::Art { index, con } => {
                     let (name, _) = xp::FILES[*index];
                     let caption = format!(
@@ -175,13 +185,25 @@ fn run(terminal: &mut ratatui::DefaultTerminal, mut mode: Mode, rng: &mut Rng) -
                         note = Some(("New Campaign is not ported yet; try armcom --encounter".into(), Instant::now()))
                     }
                     Some(Choice::HighScores) => note = Some(("High Scores are not ported yet".into(), Instant::now())),
-                    Some(Choice::Credits) => note = Some(("Credits are not ported yet".into(), Instant::now())),
+                    Some(Choice::Credits) => {
+                        mode = Mode::Credits(Box::new(credits::Credits::new()));
+                        log::info!("switch: credits");
+                        continue;
+                    }
                     None => {}
                 }
                 if let Some((n, _)) = &note {
                     log::info!("menu: {n}");
                 }
             }
+            Mode::Credits(c) => match key.code {
+                KeyCode::Enter | KeyCode::Esc => {
+                    mode = Mode::Menu(Box::new(MainMenu::new(rng)));
+                    log::info!("switch: menu");
+                }
+                KeyCode::Char('p') | KeyCode::Char('P') => c.toggle_pause(),
+                _ => {}
+            },
             Mode::Art { index, .. } => {
                 let n = xp::FILES.len();
                 let next = match key.code {
