@@ -25,7 +25,8 @@ animated main menu work; the campaign is not translated yet.
 - Steamworks is dropped.
 - The name stays "Armoured Commander" (David, 2026-10-18), with Gregory
   Adam Scott's blessing to be asked for (sudasana@gmail.com, in the
-  original's copyright lines); not asked yet.
+  original's copyright lines); to be asked after the Asciiverse launch,
+  so there is something to show him (David, 2026-10-18).
 - The sequel, Armoured Commander II, is cloned at
   `../../references/Armoured Commander II` (GPL 3.0.2, 2020). It is a
   separate title for later; its newer Steam versions are not GPL data.
