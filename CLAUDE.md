@@ -10,8 +10,8 @@ Status: started 2026-10-13. Console layer, glyph table, `.xp` art, the
 animated main menu, and (2026-10-18) the whole encounter: battle rules,
 enemy units, crew, and the 100x30 encounter screen. `armcom --encounter
 [advance|battle|counterattack]` plays one encounter with a fresh crew.
-Not yet: the campaign (day map, calendar, refits), the info windows
-(F1 to F5), saves and the bones file screens, sound.
+Also ported: credits, high scores, the F1 help window. Not yet: the
+campaign (day map, calendar, refits), the F2 to F5 windows, saves, sound.
 
 ## Source and licence
 
