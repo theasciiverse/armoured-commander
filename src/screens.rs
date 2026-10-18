@@ -106,9 +106,71 @@ impl Game {
         self.not_ported("Crew Info");
     }
 
-    /// `ShowSettings`
+    /// `ShowSettings`. The original's full screen and resolution options
+    /// have no terminal equivalent and are left out.
     pub fn show_settings(&mut self) {
-        self.not_ported("Settings");
+        self.darken_screen();
+        let x = MENU_CON_XM - 29;
+        loop {
+            let c = &self.campaign;
+            let on = |b: bool| if b { "On" } else { "Off" };
+            let m = &mut self.menu_con;
+            m.clear();
+            m.align = Align::Left;
+            m.frame(0, 0, MENU_CON_WIDTH, MENU_CON_HEIGHT, false, false);
+            m.fg = MENU_TITLE_COLOR;
+            m.print_ex(MENU_CON_XM, 2, Align::Center, "Game Settings Menu");
+            m.fg = color::WHITE;
+            m.print_ex(MENU_CON_XM, 3, Align::Center, &format!("{VERSION}{SUBVERSION}"));
+
+            m.frame(x, 5, 40, 6, false, false);
+            m.fg = MENU_TITLE_COLOR;
+            m.print(x + 2, 6, "Campaign Settings");
+            m.fg = color::WHITE;
+            let tanks = if c.unlimited_tank_selection { "Unlimited" } else { "Strict" };
+            m.print(x + 2, 8, &format!("Tank Selection: {tanks}"));
+            let cmdr = if c.casual_commander { "Casual" } else { "Realistic" };
+            m.print(x + 2, 9, &format!("Commander Replacement: {cmdr}"));
+
+            m.frame(x, 12, 58, 8, false, false);
+            m.fg = MENU_TITLE_COLOR;
+            m.print(x + 2, 13, "Display Settings");
+            m.fg = color::WHITE;
+            m.print(x + 2, 15, &format!("[{}]nimations: {}", hl("A"), on(c.animations)));
+            m.print(x + 2, 16, &format!("[{}]ounds: {}", hl("S"), on(c.sounds)));
+            m.print(x + 2, 17, &format!("[{}]isplay Tutorial Messages: {}", hl("D"), on(c.tutorial_message)));
+            m.print(x + 2, 18, &format!("[{}]ait for Enter before clearing on-screen labels: {}", hl("W"), on(c.pause_labels)));
+
+            m.print_ex(MENU_CON_XM, MENU_CON_HEIGHT - 3, Align::Center, "Press highlighted letter to change setting");
+            m.print_ex(MENU_CON_XM, MENU_CON_HEIGHT - 2, Align::Center, &format!("[{}] Return", hl("ESC")));
+            self.blit_menu();
+            self.flush();
+            if self.scr.is_headless() {
+                break;
+            }
+
+            let mut refresh = false;
+            while !refresh {
+                self.check_for_event();
+                if self.key_vk() == Vk::Escape {
+                    return self.after_window();
+                }
+                let c = &mut self.campaign;
+                match self.scr.key.c.to_ascii_lowercase() {
+                    'a' => c.animations = !c.animations,
+                    's' => c.sounds = !c.sounds,
+                    'w' => c.pause_labels = !c.pause_labels,
+                    'd' => c.tutorial_message = !c.tutorial_message,
+                    _ => {
+                        self.flush();
+                        continue;
+                    }
+                }
+                log::info!("settings: animations={} sounds={} tutorial={} pause_labels={}", c.animations, c.sounds, c.tutorial_message, c.pause_labels);
+                refresh = true;
+            }
+        }
+        self.after_window();
     }
 
     /// `ShowCampaignStats`
