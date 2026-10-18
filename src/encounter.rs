@@ -170,7 +170,9 @@ impl Game {
         match vk {
             Vk::Escape => self.encounter_menu(),
             Vk::F(1) | Vk::Digit(1) => self.show_help(),
-            Vk::F(2) | Vk::Digit(2) => self.show_tank_info(false),
+            Vk::F(2) | Vk::Digit(2) => {
+                self.show_tank_info(false);
+            }
             Vk::F(3) | Vk::Digit(3) => self.show_crew_info(),
             Vk::F(4) | Vk::Digit(4) => self.show_settings(),
             Vk::F(5) | Vk::Digit(5) => self.show_campaign_stats(),

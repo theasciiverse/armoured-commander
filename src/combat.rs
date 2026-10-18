@@ -1998,7 +1998,10 @@ impl Game {
         }
         if s.has("overhead_view") {
             if let Some(img) = crate::xp::by_name(s.str("overhead_view")) {
-                crate::console::Console::blit(&img, 0, 0, img.w, img.h, con, x + 40, y);
+                // beside the stats, centred top to bottom: the pictures are
+                // up to 27 rows tall
+                let iy = ((con.h - img.h) / 2).max(1);
+                crate::console::Console::blit(&img, 0, 0, img.w, img.h, con, x + 44, iy);
             }
         }
     }
