@@ -1,5 +1,7 @@
 mod color;
 mod console;
+#[allow(dead_code)] // read by the rules as they are translated
+mod defs;
 mod glyph;
 mod rng;
 mod title;

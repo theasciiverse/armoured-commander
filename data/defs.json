@@ -1,0 +1,2784 @@
+{
+ "USA_RANKS": [
+  [
+   "Pvt.",
+   "Private",
+   0
+  ],
+  [
+   "Pfc.",
+   "Private First Class",
+   0
+  ],
+  [
+   "Cpl.",
+   "Corporal",
+   0
+  ],
+  [
+   "Sgt.",
+   "Sergeant",
+   0
+  ],
+  [
+   "S/Sgt.",
+   "Staff Sergeant",
+   500
+  ],
+  [
+   "2nd Lt.",
+   "Second Lieutenant",
+   1000
+  ],
+  [
+   "1st Lt.",
+   "First Lieutenant",
+   2000
+  ],
+  [
+   "Capt.",
+   "Captain",
+   3000
+  ]
+ ],
+ "USA_DECORATIONS": [
+  [
+   "Bronze Star",
+   "for heroic service",
+   80
+  ],
+  [
+   "Silver Star",
+   "for gallantry in action",
+   100
+  ],
+  [
+   "Distinguished Service Cross",
+   "for extraordinary heroism",
+   120
+  ],
+  [
+   "Congressional Medal of Honor",
+   "for conspicuous gallantry and intrepidity",
+   140
+  ]
+ ],
+ "UKC_RANKS": [
+  [
+   "Tpr.",
+   "Trooper",
+   0
+  ],
+  [
+   "LCpl.",
+   "Lance Corporal",
+   0
+  ],
+  [
+   "Cpl.",
+   "Corporal",
+   0
+  ],
+  [
+   "Sgt.",
+   "Sergeant",
+   0
+  ],
+  [
+   "S/Sgt.",
+   "Staff Sergeant",
+   500
+  ],
+  [
+   "2nd Lt.",
+   "Second Lieutenant",
+   1000
+  ],
+  [
+   "Lt.",
+   "Lieutenant",
+   2000
+  ],
+  [
+   "Capt.",
+   "Captain",
+   3000
+  ]
+ ],
+ "UKC_DECORATIONS": [
+  [
+   "Military Medal",
+   "for bravery in the field",
+   80
+  ],
+  [
+   "Military Cross",
+   "for acts of exemplary gallantry",
+   100
+  ],
+  [
+   "Distinguished Service Order",
+   "for meritorious service",
+   120
+  ],
+  [
+   "Victoria Cross",
+   "for valour in the face of the enemy",
+   140
+  ]
+ ],
+ "HE_HIT_ANIMATION": [
+  [
+   9,
+   [
+    191,
+    191,
+    0
+   ],
+   220
+  ],
+  [
+   15,
+   [
+    191,
+    0,
+    0
+   ],
+   240
+  ],
+  [
+   15,
+   [
+    255,
+    0,
+    0
+   ],
+   200
+  ],
+  [
+   176,
+   [
+    63,
+    63,
+    63
+   ],
+   300
+  ]
+ ],
+ "AP_HIT_ANIMATION": [
+  [
+   9,
+   [
+    191,
+    191,
+    0
+   ],
+   220
+  ],
+  [
+   9,
+   [
+    191,
+    0,
+    0
+   ],
+   240
+  ],
+  [
+   9,
+   [
+    255,
+    0,
+    0
+   ],
+   200
+  ],
+  [
+   9,
+   [
+    63,
+    63,
+    63
+   ],
+   300
+  ]
+ ],
+ "C_STATS": [
+  "Map Areas Captured",
+  "Tanks Lost",
+  "Crewmen Sent Home",
+  "Crewmen KIA",
+  "Infantry Destroyed by Player",
+  "Infantry Destroyed by Allies",
+  "AT Guns Destroyed by Player",
+  "AT Guns Destroyed by Allies",
+  "Tanks & SPGs Destroyed by Player",
+  "Tanks & SPGs Destroyed by Allies",
+  "Other Vehicles Destroyed by Player",
+  "Other Vehicles Destroyed by Allies",
+  "Quests Assigned",
+  "Quests Completed"
+ ],
+ "FS_RES_LIST": [
+  [
+   1366,
+   768
+  ],
+  [
+   1680,
+   1050
+  ],
+  [
+   1920,
+   1080
+  ]
+ ],
+ "SKILLS": [
+  {
+   "name": "Fire Direction",
+   "desc": "Increases modifier for directing fire by +1.",
+   "restrictions": [
+    "Commander"
+   ],
+   "levels": [
+    3,
+    5,
+    7
+   ]
+  },
+  {
+   "name": "Driver Direction",
+   "desc": "Increases modifier for movement-related rolls by +1.",
+   "restrictions": [
+    "Commander"
+   ],
+   "levels": [
+    3,
+    5,
+    7
+   ]
+  },
+  {
+   "name": "Battle Leadership",
+   "desc": "Increases chance of all other crew skill activations for the encounter turn in which it activates.",
+   "restrictions": [
+    "Commander"
+   ],
+   "levels": [
+    2,
+    4,
+    6
+   ]
+  },
+  {
+   "name": "Keen Senses",
+   "desc": "Decreases chances of being ambushed at the start of an Advance or Battle encounter, increases chances of ambushing enemy in a Counterattack encounter.",
+   "restrictions": [
+    "Commander"
+   ],
+   "levels": [
+    10,
+    20,
+    30
+   ]
+  },
+  {
+   "name": "Quick Trigger",
+   "desc": "Bonus to Rate of Fire roll.",
+   "restrictions": [
+    "Gunner"
+   ],
+   "levels": [
+    5,
+    10,
+    15
+   ]
+  },
+  {
+   "name": "Knows Weak Spots",
+   "desc": "An unmodified roll of 3 counts as a critical hit if activated.",
+   "restrictions": [
+    "Gunner"
+   ],
+   "levels": [
+    5,
+    10,
+    15
+   ]
+  },
+  {
+   "name": "Target Tracking",
+   "desc": "No negative to-hit modifier for firing at a moving target.",
+   "restrictions": [
+    "Gunner"
+   ],
+   "levels": [
+    5,
+    10,
+    15
+   ]
+  },
+  {
+   "name": "Gyrostabilizer",
+   "desc": "Gunner must have at least one level of this skill to fire main gun while moving. If skill activates, to-hit penalty is +2, otherwise it doubles to +4. This skill only becomes available after first refit period of campaign.",
+   "restrictions": [
+    "Gunner"
+   ],
+   "levels": [
+    10,
+    20,
+    40,
+    80,
+    100
+   ]
+  },
+  {
+   "name": "Fast Hands",
+   "desc": "Bonus to Rate of Fire roll.",
+   "restrictions": [
+    "Loader"
+   ],
+   "levels": [
+    5,
+    10,
+    15
+   ]
+  },
+  {
+   "name": "Shell Juggler",
+   "desc": "If activated, reloaded shell is taken from general stores instead of ready rack.",
+   "restrictions": [
+    "Loader"
+   ],
+   "levels": [
+    3,
+    5,
+    7
+   ]
+  },
+  {
+   "name": "Scrounger",
+   "desc": "More rare ammo types for main gun available if activated.",
+   "restrictions": [
+    "Loader"
+   ],
+   "levels": [
+    20,
+    40,
+    60,
+    80
+   ]
+  },
+  {
+   "name": "Drag Racer",
+   "desc": "If tank is moving from a stopped position, bonus to movement roll.",
+   "restrictions": [
+    "Driver"
+   ],
+   "levels": [
+    10,
+    20,
+    30
+   ]
+  },
+  {
+   "name": "Eye for Cover",
+   "desc": "If hatch is open, receives a bonus to achieve Hull Down status.",
+   "restrictions": [
+    "Driver"
+   ],
+   "levels": [
+    3,
+    5,
+    7
+   ]
+  },
+  {
+   "name": "Tough Mudder",
+   "desc": "If hatch is open, receives a bonus to unbogging roll.",
+   "restrictions": [
+    "Driver"
+   ],
+   "levels": [
+    3,
+    5,
+    7
+   ]
+  },
+  {
+   "name": "Cautious Driver",
+   "desc": "Greater chance for tank to start an encounter Hull Down, otherwise tank starts the encounter Moving.",
+   "restrictions": [
+    "Driver"
+   ],
+   "levels": [
+    5,
+    10,
+    15
+   ]
+  },
+  {
+   "name": "Apprentice Gunner",
+   "desc": "Bonus to to-kill roll when firing bow MG.",
+   "restrictions": [
+    "Asst. Driver"
+   ],
+   "levels": [
+    10,
+    20,
+    30
+   ]
+  },
+  {
+   "name": "Shell Tosser",
+   "desc": "Doubles bonus to Rate of Fire roll when passing ammo.",
+   "restrictions": [
+    "Asst. Driver"
+   ],
+   "levels": [
+    10,
+    20,
+    30
+   ]
+  },
+  {
+   "name": "Eagle Eyed",
+   "desc": "This crewman has an uncanny ability to spot and identify enemy units when spotting though an open hatch.",
+   "restrictions": [
+    "Commander",
+    "Loader",
+    "Driver",
+    "Asst. Driver"
+   ],
+   "levels": [
+    5,
+    10,
+    15
+   ]
+  },
+  {
+   "name": "Pocket Bible",
+   "desc": "Chance to ignore a Dead result when wounded.",
+   "restrictions": [],
+   "levels": [
+    20,
+    40,
+    60,
+    80
+   ]
+  },
+  {
+   "name": "Gymnast",
+   "desc": "Bonus to Bail Out roll.",
+   "restrictions": [],
+   "levels": [
+    20,
+    40,
+    60,
+    80
+   ]
+  },
+  {
+   "name": "Lightning Reflexes",
+   "desc": "Chance to ignore wound from collateral damage when crewman is exposed (open hatch, etc.)",
+   "restrictions": [],
+   "levels": [
+    20,
+    40,
+    60,
+    80
+   ]
+  },
+  {
+   "name": "True Grit",
+   "desc": "Better odds of recovering from negative status effects, resisting Stun, plus more likely that a wound will be less severe.",
+   "restrictions": [],
+   "levels": [
+    20,
+    40,
+    60,
+    80
+   ]
+  },
+  {
+   "name": "Mechanic",
+   "desc": "Bonus to repair a tank malfunction.",
+   "restrictions": [],
+   "levels": [
+    20,
+    40,
+    60,
+    80
+   ]
+  }
+ ],
+ "LEVEL_CAP": 40,
+ "AMMO_TYPES": [
+  "HE",
+  "AP",
+  "WP",
+  "HCBI",
+  "HVAP",
+  "APDS"
+ ],
+ "HEXES": [
+  [
+   0,
+   -3,
+   2,
+   4
+  ],
+  [
+   1,
+   -3,
+   2,
+   4
+  ],
+  [
+   2,
+   -3,
+   2,
+   5
+  ],
+  [
+   3,
+   -3,
+   2,
+   5
+  ],
+  [
+   3,
+   -2,
+   2,
+   5
+  ],
+  [
+   3,
+   -1,
+   2,
+   0
+  ],
+  [
+   3,
+   0,
+   2,
+   0
+  ],
+  [
+   2,
+   1,
+   2,
+   0
+  ],
+  [
+   1,
+   2,
+   2,
+   1
+  ],
+  [
+   0,
+   3,
+   2,
+   1
+  ],
+  [
+   -1,
+   3,
+   2,
+   1
+  ],
+  [
+   -2,
+   3,
+   2,
+   2
+  ],
+  [
+   -3,
+   3,
+   2,
+   2
+  ],
+  [
+   -3,
+   2,
+   2,
+   2
+  ],
+  [
+   -3,
+   1,
+   2,
+   3
+  ],
+  [
+   -3,
+   0,
+   2,
+   3
+  ],
+  [
+   -2,
+   -1,
+   2,
+   3
+  ],
+  [
+   -1,
+   -2,
+   2,
+   4
+  ],
+  [
+   0,
+   -2,
+   1,
+   4
+  ],
+  [
+   1,
+   -2,
+   1,
+   4
+  ],
+  [
+   2,
+   -2,
+   1,
+   5
+  ],
+  [
+   2,
+   -1,
+   1,
+   5
+  ],
+  [
+   2,
+   0,
+   1,
+   0
+  ],
+  [
+   1,
+   1,
+   1,
+   0
+  ],
+  [
+   0,
+   2,
+   1,
+   1
+  ],
+  [
+   -1,
+   2,
+   1,
+   2
+  ],
+  [
+   -2,
+   2,
+   1,
+   2
+  ],
+  [
+   -2,
+   1,
+   1,
+   3
+  ],
+  [
+   -2,
+   0,
+   1,
+   3
+  ],
+  [
+   -1,
+   -1,
+   1,
+   4
+  ],
+  [
+   0,
+   -1,
+   0,
+   4
+  ],
+  [
+   1,
+   -1,
+   0,
+   5
+  ],
+  [
+   1,
+   0,
+   0,
+   0
+  ],
+  [
+   0,
+   1,
+   0,
+   1
+  ],
+  [
+   -1,
+   1,
+   0,
+   2
+  ],
+  [
+   -1,
+   0,
+   0,
+   3
+  ],
+  [
+   0,
+   0,
+   -1,
+   -1
+  ]
+ ],
+ "CREW_ORDERS": [
+  {
+   "name": "None",
+   "desc": "The crew member does nothing this turn.",
+   "spot": true,
+   "position_list": [
+    "Commander",
+    "Gunner",
+    "Loader",
+    "Asst. Driver"
+   ]
+  },
+  {
+   "name": "Direct Movement",
+   "desc": "Help direct the movement of your tank. Reduces the chance of a thrown track or bogging down. Full effect if commander directing from open hatch, half effect if buttoned up and tank has a vision cupola. Otherwise no effect. No effect on firing.",
+   "spot": true,
+   "position_list": [
+    "Commander"
+   ]
+  },
+  {
+   "name": "Direct Main Gun Fire",
+   "desc": "Help direct the fire of the main gun, increasing the chances of a hit.",
+   "spot": true,
+   "position_list": [
+    "Commander"
+   ]
+  },
+  {
+   "name": "Direct Co-ax MG Fire",
+   "desc": "Help direct the fire of the co-ax machine gun, increasing the chances of destroying the target. No effect if this MG is not fired this turn.",
+   "spot": true,
+   "position_list": [
+    "Commander"
+   ]
+  },
+  {
+   "name": "Direct Bow MG Fire",
+   "desc": "Help direct the fire of the bow machine gun, increasing the chances of destroying the target. No effect if this MG is not fired this turn.",
+   "spot": true,
+   "position_list": [
+    "Commander"
+   ]
+  },
+  {
+   "name": "Fire Main Gun",
+   "desc": "Fire the main gun at an enemy target. Gun must already have a shell loaded in order to fire. Turret can be rotated before firing, but if so then the first shot will be at a penalty.",
+   "spot": false,
+   "position_list": [
+    "Gunner"
+   ]
+  },
+  {
+   "name": "Fire Co-Axial MG",
+   "desc": "Fire the Co-axial MG at an enemy target. Turret can be rotated before firing, but if so then the shot will be at a penalty.",
+   "spot": true,
+   "position_list": [
+    "Gunner"
+   ]
+  },
+  {
+   "name": "Rotate Turret",
+   "desc": "Rotate turret to face any sector. Gunner may only spot in the sector in front of the turret's new facing",
+   "spot": true,
+   "position_list": [
+    "Gunner"
+   ]
+  },
+  {
+   "name": "Help Repair",
+   "desc": "Assist any crewman attempting to repair a malfunction. Only effective if another crewman is on a repair order.",
+   "spot": false,
+   "position_list": [
+    "Gunner"
+   ]
+  },
+  {
+   "name": "Reload",
+   "desc": "Reload the main gun if it's fired. No effect if main gun is malfunctioning. May only spot if main gun is not fired.",
+   "spot": true,
+   "position_list": [
+    "Loader"
+   ]
+  },
+  {
+   "name": "Repair Main Gun",
+   "desc": "Attempt to repair a malfunctioning main gun.",
+   "spot": false,
+   "position_list": [
+    "Loader"
+   ]
+  },
+  {
+   "name": "Repair Co-ax MG",
+   "desc": "Attempt to repair a malfunctioning co-axial machine gun.",
+   "spot": false,
+   "position_list": [
+    "Loader"
+   ]
+  },
+  {
+   "name": "Repair Turret Traverse",
+   "desc": "Attempt to repair a broken turret traverse gear.",
+   "spot": false,
+   "position_list": [
+    "Loader"
+   ]
+  },
+  {
+   "name": "Repair Radio",
+   "desc": "Attempt to repair a broken turret radio.",
+   "spot": false,
+   "position_list": [
+    "Loader"
+   ]
+  },
+  {
+   "name": "Repair Intercom",
+   "desc": "Attempt to repair a broken tank intercom.",
+   "spot": false,
+   "position_list": [
+    "Loader"
+   ]
+  },
+  {
+   "name": "Fire Smoke Mortar",
+   "desc": "Fire the 2\" smoke mortar, creating a smoke marker at Close range to the turret front. Also reloads the mortar if any rounds are still available.",
+   "spot": false,
+   "position_list": [
+    "Loader"
+   ]
+  },
+  {
+   "name": "Change Gun Load",
+   "desc": "Change the type of round loaded in the main gun to any round available. Will also reload the main gun if fired, but cannot maintain RoF if Loader is on this order.",
+   "spot": false,
+   "position_list": [
+    "Loader"
+   ]
+  },
+  {
+   "name": "Restock Ready Rack",
+   "desc": "Refill the ready rack with any rounds still available. Main gun will not be reloaded if it is fired this turn.",
+   "spot": false,
+   "position_list": [
+    "Loader"
+   ]
+  },
+  {
+   "name": "Stop",
+   "desc": "Stop the tank.",
+   "spot": true,
+   "position_list": [
+    "Driver"
+   ]
+  },
+  {
+   "name": "Forward",
+   "desc": "Move the tank forward.",
+   "spot": true,
+   "position_list": [
+    "Driver"
+   ]
+  },
+  {
+   "name": "Forward to Hull Down",
+   "desc": "Move the tank forward and attempt to move into a hull down position.",
+   "spot": true,
+   "position_list": [
+    "Driver"
+   ]
+  },
+  {
+   "name": "Reverse",
+   "desc": "Move the tank backward.",
+   "spot": true,
+   "position_list": [
+    "Driver"
+   ]
+  },
+  {
+   "name": "Reverse to Hull Down",
+   "desc": "Move the tank backward and attempt to move into a hull down position.",
+   "spot": true,
+   "position_list": [
+    "Driver"
+   ]
+  },
+  {
+   "name": "Pivot Tank",
+   "desc": "Pivot tank to face any sector. Counts as moving, so may not fire main gun, and any hull down position is lost.",
+   "spot": true,
+   "position_list": [
+    "Driver"
+   ]
+  },
+  {
+   "name": "Attempt Unbog",
+   "desc": "Attempt to free the tank from being bogged down. Bonus if commander is directing movement from an open hatch, penalty if driver is buttoned up.",
+   "spot": false,
+   "position_list": [
+    "Driver"
+   ]
+  },
+  {
+   "name": "Fire Bow MG",
+   "desc": "Fire the bow MG in the sector to the tank's front. May not fire if tank is hull down. Subtract crew member's skill from the To Kill roll.",
+   "spot": true,
+   "position_list": [
+    "Asst. Driver"
+   ]
+  },
+  {
+   "name": "Repair Bow MG",
+   "desc": "Attempt to repair a malfunctioning bow MG.",
+   "spot": false,
+   "position_list": [
+    "Asst. Driver"
+   ]
+  },
+  {
+   "name": "Pass Ammo",
+   "desc": "Pass ammo to the Loader to improve reload time. Increases chance of maintaining Rate of Fire. Has no effect when loading from the ready rack.",
+   "spot": false,
+   "position_list": [
+    "Asst. Driver"
+   ]
+  },
+  {
+   "name": "Throw Smoke Grenade",
+   "desc": "The crew member throws a smoke grenade out of an open hatch, creating one smoke factor in the player hex. No effect if no hatch or hatch is shut.",
+   "spot": true,
+   "position_list": [
+    "Commander",
+    "Loader"
+   ]
+  },
+  {
+   "name": "Fire AA MG",
+   "desc": "Fire the .50 cal MG mounted on the top of the tank turret. Crew member must have an open hatch, and if Loader it must be a split hatch rather than an oval one. The crew member is much more vulnerable to being wounded while on this order, since they must venture outside of the tank.",
+   "spot": true,
+   "position_list": [
+    "Commander",
+    "Loader"
+   ]
+  },
+  {
+   "name": "Repair AA MG",
+   "desc": "Attempt to repair a malfunctioning AA machine gun. Crew member must have an open hatch. and if Loader it must be a split hatch rather than an oval one. The crew member is much more vulnerable to being wounded while on this order, since they must venture outside of the tank.",
+   "spot": false,
+   "position_list": [
+    "Commander",
+    "Loader"
+   ]
+  },
+  {
+   "name": "Abandon Tank",
+   "desc": "Order all crewmen to bail out of the tank, risking injury but heading back to friendly lines. Only one crewman needs to have this order to bail out all crewmen.",
+   "spot": false,
+   "position_list": [
+    "Commander",
+    "Gunner",
+    "Loader",
+    "Driver",
+    "Asst. Driver"
+   ]
+  }
+ ],
+ "TANK_NAMES": [
+  "Fury",
+  "Vengeance",
+  "Cobra King",
+  "Hannibal",
+  "Thunderbolt",
+  "Blood & Guts",
+  "Colorado",
+  "Condor",
+  "Apache",
+  "Ironside",
+  "Lucky Legs",
+  "Cairo",
+  "Colbert",
+  "Hurricane",
+  "Hellbound",
+  "Lucky Lady",
+  "ALF",
+  "Barnbuster",
+  "Caribou",
+  "Flare Path",
+  "Steadfast",
+  "Maiden Castle",
+  "Little John",
+  "Goldcrest",
+  "Folkestone",
+  "Predator",
+  "Anapola",
+  "Arsenic",
+  "Astoria",
+  "Athena",
+  "Avenger",
+  "Bastard Bill",
+  "Battling Annie",
+  "Bed Bug",
+  "Beelzebub",
+  "Beowulf",
+  "Betty",
+  "The Black Orchid",
+  "Block Buster",
+  "Bomb",
+  "Boomerang",
+  "Bright Eyes",
+  "Buffalo",
+  "Buck Private",
+  "China Gal",
+  "Clodhopper",
+  "Comet",
+  "Corsair",
+  "Cougar",
+  "Davy Jones",
+  "Draftee",
+  "Eternity",
+  "The Flying Scot",
+  "Hot Box",
+  "Hot Lips",
+  "Hot Pants",
+  "Hyena",
+  "Jeanne D'Arc",
+  "King Kong",
+  "Lady Liberty",
+  "Murder Inc.",
+  "Nightmare",
+  "Old Faithful",
+  "Pistol Packin' Mama",
+  "Rachel",
+  "Shaman",
+  "Snafu",
+  "The Stag",
+  "Stampede",
+  "Squirrel",
+  "War Bride"
+ ],
+ "FIRST_NAMES": [
+  "Gregory",
+  "Shane",
+  "Lee",
+  "Andre",
+  "Mario",
+  "Louis",
+  "Stephen",
+  "Kenneth",
+  "Angelo",
+  "Oliver",
+  "Edward",
+  "Joshua",
+  "Ronald",
+  "Victor",
+  "Eli",
+  "Mario",
+  "Dallas",
+  "Arthur",
+  "Anderson",
+  "Dylan",
+  "John",
+  "Quentin",
+  "Alexander",
+  "Timothy",
+  "Wesley",
+  "Spencer",
+  "Leonardo",
+  "Edgar",
+  "Bob",
+  "Chewy",
+  "Frank",
+  "Dmitry",
+  "Jens",
+  "Conrad",
+  "Eric",
+  "Robert",
+  "James",
+  "William",
+  "Charles",
+  "George",
+  "Joseph",
+  "Richard",
+  "Donald",
+  "Thomas",
+  "Frank",
+  "Harold",
+  "Paul",
+  "Raymond",
+  "Walter",
+  "Jack",
+  "Henry",
+  "Kenneth",
+  "Albert",
+  "David",
+  "Harry",
+  "Eugene",
+  "Ralph",
+  "Howard",
+  "Carl",
+  "Willie",
+  "Louis",
+  "Clarence",
+  "Earl",
+  "Roy",
+  "Fred",
+  "Joe",
+  "Francis",
+  "Lawrence",
+  "Herbert",
+  "Leonard",
+  "Ernest",
+  "Alfred",
+  "Anthony",
+  "Stanley",
+  "Norman",
+  "Gerald",
+  "Daniel",
+  "Samuel",
+  "Bernard",
+  "Billy",
+  "Melvin",
+  "Martin",
+  "Warren",
+  "Michael",
+  "Leroy",
+  "Russell",
+  "Leo",
+  "Andrew",
+  "Edwin",
+  "Elmer",
+  "Peter",
+  "Floyd",
+  "Lloyd",
+  "Ray",
+  "Fredrick",
+  "Theodore",
+  "Clifford",
+  "Vernon",
+  "Herman",
+  "Clyde",
+  "Chester",
+  "Philip",
+  "Alvin",
+  "Lester",
+  "Wayne",
+  "Vincent",
+  "Gordon",
+  "Leon",
+  "Lewis",
+  "Charlie",
+  "Glenn",
+  "Calvin",
+  "Martin",
+  "Milton",
+  "Jesse",
+  "Dale",
+  "Cecil",
+  "Bill",
+  "Harvey",
+  "Roger",
+  "Victor",
+  "Benjamin",
+  "Wallace",
+  "Sam",
+  "Allen",
+  "Arnold",
+  "Willard",
+  "Gilbert",
+  "Edgar",
+  "Oscar"
+ ],
+ "LAST_NAMES": [
+  "Abraham",
+  "Adler",
+  "Allen",
+  "Ankins",
+  "Applegate",
+  "Avery",
+  "Bacon",
+  "Baker",
+  "Barnham",
+  "Belanger",
+  "Bentz",
+  "Bessler",
+  "Best",
+  "Blakely",
+  "Bleeker",
+  "Bouche",
+  "Brant",
+  "Brawley",
+  "Bretz",
+  "Brock",
+  "Brockman",
+  "Bruce",
+  "Buchman",
+  "Burnett",
+  "Burns",
+  "Butterfield",
+  "Caffey",
+  "Christopher",
+  "Cleary",
+  "Codere",
+  "Collins",
+  "Coutu",
+  "Cowell",
+  "Cowman",
+  "Cox",
+  "Craig",
+  "Crankovitch",
+  "Cuthburt",
+  "Cuttling",
+  "Darwin",
+  "Davis",
+  "Delarosa",
+  "Douglass",
+  "Dorman",
+  "Eakley",
+  "Eddie",
+  "Edwards",
+  "Elliott",
+  "Ellis",
+  "Elsner",
+  "English",
+  "Fanbrick",
+  "Farwell",
+  "Feigel",
+  "Felten",
+  "Fenske",
+  "Feigel",
+  "Fields",
+  "Fillman",
+  "Finley",
+  "Firske",
+  "Fournier",
+  "France",
+  "Franklin",
+  "Freeman",
+  "Furlong",
+  "Gallaway",
+  "Garvin",
+  "Germain",
+  "Gilchrist",
+  "Gillespie",
+  "Gohl",
+  "Goodwin",
+  "Gray",
+  "Greenwald",
+  "Greenwalt",
+  "Griffen",
+  "Griffith",
+  "Hahn",
+  "Halsted",
+  "Hammermeister",
+  "Hancock",
+  "Harmal",
+  "Hass",
+  "Hastings",
+  "Hayes",
+  "Heminger",
+  "Henchal",
+  "Hessen",
+  "Hilt",
+  "Hollister",
+  "Hollman",
+  "Howell",
+  "Hyde",
+  "Jordon",
+  "Kaiser",
+  "Kasper",
+  "Kegley",
+  "Kinney",
+  "Kleeman",
+  "Laird",
+  "Leach",
+  "Lehman",
+  "Lesatz",
+  "Levard",
+  "Lindh",
+  "Lynch",
+  "Madison",
+  "Manse",
+  "Matchinski",
+  "Mathews",
+  "Mauldin",
+  "McAlpine",
+  "McBurney",
+  "McCain",
+  "McCarney",
+  "McCown",
+  "McCutchen",
+  "McCutcheon",
+  "McDonald",
+  "McGraw",
+  "Medeiros",
+  "Merrick",
+  "Metic",
+  "Mondt",
+  "Morris",
+  "Moses",
+  "Navarro",
+  "Nickels",
+  "Normandeau",
+  "Norval",
+  "O'Connell",
+  "Olson",
+  "O'Neal",
+  "Ozanich",
+  "Patterson",
+  "Patzer",
+  "Peppin",
+  "Petrovich",
+  "Petty",
+  "Perkins",
+  "Porter",
+  "Posch",
+  "Price",
+  "Rapin",
+  "Rapp",
+  "Raslo",
+  "Razner",
+  "Rifenberg",
+  "Riley",
+  "Ripley",
+  "Robertson",
+  "Rooney",
+  "Rosental",
+  "Rossini",
+  "Russell",
+  "Rychech",
+  "Sawyer",
+  "Schafer",
+  "Schmidt",
+  "Schroeder",
+  "Schwartz",
+  "Scott",
+  "Shattuck",
+  "Shaw",
+  "Simmons",
+  "Slack",
+  "Smith",
+  "Speltzer",
+  "Stern",
+  "Stewart",
+  "Stone",
+  "Strenburg",
+  "Strong",
+  "Swanson",
+  "Syveran",
+  "Tenker",
+  "Thomas",
+  "Traver",
+  "Vallier",
+  "Vann",
+  "Wagner",
+  "Walsted",
+  "Warner",
+  "Webber",
+  "Weir",
+  "Welch",
+  "Westin",
+  "White",
+  "Winters",
+  "Woods",
+  "Wolff"
+ ],
+ "HIGHLIGHT": [
+  1,
+  8
+ ],
+ "MENU_BAR1": "\u0001ESC\b:Menu  |  ",
+ "MENU_BAR2": "\u0001F1/1\b:Help  |  \u0001F2/2\b:Tank Info  |  \u0001F3/3\b:Crew Info  |  \u0001F4/4\b:Settings  |  \u0001F5/5\b:Campaign Stats  |  \u0001F6/6\b:Screenshot  |  \u0001F7/7\b:Sound",
+ "SPOT_SECTOR_INFO": [
+  "[\u0001W/S/Up/Down\b] Select crew",
+  "[\u0001A/D/Left/Right\b] Rotate selected spot sector",
+  "[\u0001Space/End\b] Proceed to Spotting Phase"
+ ],
+ "ORDERS_PHASE_INFO": [
+  "[\u0001W/S/Up/Down\b] select crewman",
+  "[\u0001A/D/Left/Right\b] change order for selected crew",
+  "Select [\u0001O\b]rder for selected crew from a menu",
+  "[\u0001R\b] cycle through ammo types to use when Reloading the main gun",
+  "[\u0001T\b] toggle use of the Ready Rack for reloading the main gun",
+  "[\u0001H\b] toggle Hatch status for selected crew member",
+  "[\u0001Space/End\b] finish Orders and proceed to Crew Actions"
+ ],
+ "ORDER_INFO": [
+  "[\u0001W/S/Up/Down\b] Move order selection",
+  "[\u0001O\b] Set the selected order",
+  "[\u0001Backspace\b] Cancel and keep current order"
+ ],
+ "PIVOT_INFO": [
+  "[\u0001A/D/Left/Right\b] Pivot to new facing",
+  "[\u0001Enter/End\b] Complete pivot"
+ ],
+ "ROTATE_INFO": [
+  "[\u0001A/D/Left/Right\b] Rotate turret",
+  "[\u0001Enter/End\b] Set turret facing and continue"
+ ],
+ "FIRE_GUN_INFO": [
+  "[\u0001A/D/Left/Right\b] Rotate turret",
+  "[\u0001Tab\b] Next target",
+  "[\u0001F\b] Toggle Area and Direct Fire",
+  "[\u0001R\b] Change ammo type to use when reloading",
+  "[\u0001T\b] Toggle use of Ready Rack for reloading",
+  "[\u0001Enter\b] Fire main gun",
+  "[\u0001Space/End\b] Finish firing and proceed to resolve hits or to next phase"
+ ],
+ "FIRE_MGS_INFO": [
+  "[\u0001A/D/Left/Right\b] Rotate turret (if co-ax can fire)",
+  "[\u0001M\b] Cycle active MG",
+  "[\u0001Tab\b] Cycle between available targets",
+  "[\u0001Enter\b] Fire an MG",
+  "[\u0001Space/End\b] Finish firing and proceed to next phase"
+ ],
+ "CHECK_AREA": [
+  "Check an Adjacent Area",
+  "",
+  "[\u0001Tab\b] Cycle through adjacent areas (Shift to reverse)",
+  "[\u0001Enter\b] Check selected area for enemy resistance level",
+  "[\u0001Backspace\b] Cancel action"
+ ],
+ "MOVE_AREA": [
+  "Move into an Adjacent Area",
+  "",
+  "[\u0001Tab\b] Cycle through adjacent areas (Shift to reverse)",
+  "[\u0001Enter\b] Move into area",
+  "[\u0001Backspace\b] Cancel move"
+ ],
+ "UNIT_INFO": {
+  "Light Weapons Infantry": "A squad of seven to ten riflemen, one of whom likely has a machine gun. Can attack and\ndestroy friendly infantry. No threat to your tank, unless they attack and a crew member\nhas an open hatch, or if they are in close range and attack with a Panzerfaust AT weapon.\nOnly HE or Machine Gun attacks will damage them; AP hits will have no effect.",
+  "MG Team": "A team of enemy infantry armed with a medium or heavy machine gun. Can attack and destroy\nfriendly infantry. No threat to your tank, unless they attack and a crew member has an\nopen hatch. Only HE or Machine Gun attacks will damage them.",
+  "50L": "The PaK 38 Anti-Tank Gun was developed in 1938 and first used in 1941 against Russian tanks.\nBy 1944 it was relatively underpowered compared to the heaviest tank armour then in use,\nbut was still widely used in the defense of France and Germany.",
+  "75L": "The PaK 40 Anti-Tank Gun was developed between 1939 and 1941 and was the most widely-used\ngerman AT gun of the latter part of the war. Its 75mm gun is also mounted on tank\ndestroyers.",
+  "88LL": "The PaK 43 Anti-Tank Gun is a 88mm gun developed in 1943 as an anti-aircraft gun, but was\nalso widely used in an anti-tank role. With a maximum range of over 8 miles, it has\nenough punch and firepower to knock out virtually any Allied tank."
+ },
+ "CREW_TALK_HEAVY_RES": [
+  "Might want to call in some support, Commander.",
+  "I guess we could go around.",
+  "Maybe we could go around?",
+  "Can't we find another route?",
+  "We're not going in there, are we?",
+  "This doesn't look too good.",
+  "I guess it's our job to take care of it.",
+  "If we don't deal with them, somebody else will have to.",
+  "He who runs away lives to fight another day.",
+  "We've seen worst. Then again, we've seen better...",
+  "Germans. Always, more Germans."
+ ],
+ "CREW_TALK_ARTY_STRIKE": [
+  "Thanks guys!",
+  "I love that sound. At least when it's far away.",
+  "Better outgoing than incoming!",
+  "I never thought I'd come to love the sound of artillery.",
+  "I hope these shells find 'em."
+ ],
+ "CREW_TALK_NO_ARTY_STRIKE": [
+  "What are they doing over there?",
+  "How are we supposed to capture territory without proper artillery support?",
+  "Looks like all the fun is going to be ours once again.",
+  "We could use some help over here.",
+  "All right. We still have a job to do!",
+  "Conserving ammunition? What about our lives?",
+  "Thanks for nothing guys..."
+ ],
+ "CREW_TALK_NO_RES": [
+  "It's quiet. Too quiet.",
+  "They must have repositioned.",
+  "Somebody must have told them we were coming.",
+  "Where are they hiding?",
+  "I thought we were going to see some action.",
+  "I guess they moved somewhere else."
+ ],
+ "CREW_TALK_THROWN_TRACK": [
+  "That's not good!",
+  "We're immobilized!",
+  "We need to repair that track ASAP!",
+  "We're sitting ducks.",
+  "Busted another track..."
+ ],
+ "CREW_TALK_ARMOUR_SAVED": [
+  "Whoa! That was close!",
+  "Incoming AT!",
+  "My head is ringing.",
+  "Saved by the tin box again.",
+  "IS THAT ALL YOU GOT?!?",
+  "Come on! You hit like my granny!"
+ ],
+ "CREW_TALK_SHOT_MISSED": [
+  "That was close. Too close.",
+  "We got lucky on that one.",
+  "Good thing they can't aim.",
+  "They won't be missing forever!",
+  "Our turn now.",
+  "Don't let them fire again!"
+ ],
+ "USA_HOMETOWNS": [
+  "New York, NY",
+  "Chicago, IL",
+  "Philadelphia, PA",
+  "Detroit, MI",
+  "Los Angeles, CA",
+  "Cleveland, OH",
+  "Baltimore, MD",
+  "St. Louis, MO",
+  "Boston, MA",
+  "Pittsburgh, PA",
+  "Washington, DC",
+  "San Francisco, CA",
+  "Milwaukee, WI",
+  "Buffalo, NY",
+  "New Orleans, LA",
+  "Minneapolis, MN",
+  "Cincinnati, OH",
+  "Newark, NJ",
+  "Kansas City, MO",
+  "Indianapolis, IN",
+  "Houston, TX",
+  "Seattle, WA",
+  "Rochester, NY",
+  "Denver, CO",
+  "Louisville, KY",
+  "Columbus, OH",
+  "Portland, OR",
+  "Atlanta, GA",
+  "Oakland, CA",
+  "Jersey City, NJ",
+  "Dallas, TX",
+  "Memphis, TN",
+  "St. Paul, MN",
+  "Toledo, OH",
+  "Birmingham, AL",
+  "San Antonio, TX",
+  "Providence, RI",
+  "Akron, OH",
+  "Omaha, NE",
+  "Dayton, OH",
+  "Syracuse, NY",
+  "Oklahoma City, OK",
+  "San Diego, CA",
+  "Worcester, MA",
+  "Richmond, VA",
+  "Fort Worth, TX",
+  "Jacksonville, FL",
+  "Miami, FL",
+  "Youngstown, OH",
+  "Nashville, TN",
+  "Hartford, CT",
+  "Grand Rapids, MI",
+  "Long Beach, CA",
+  "New Haven, CT",
+  "Des Moines, IA",
+  "Flint, MI",
+  "Salt Lake City, UT",
+  "Springfield, MA",
+  "Bridgeport, CT",
+  "Norfolk, VA",
+  "Yonkers, NY",
+  "Tulsa, OK",
+  "Scranton, PA",
+  "Paterson, NJ",
+  "Albany, NY",
+  "Chattanooga, TN",
+  "Trenton, NJ",
+  "Spokane, WA",
+  "Kansas City, KS",
+  "Fort Wayne, IN",
+  "Camden, NJ",
+  "Erie, PA",
+  "Fall River, MA",
+  "Wichita, KS",
+  "Wilmington, DE",
+  "Gary, IN",
+  "Knoxville, TN",
+  "Cambridge, MA",
+  "Reading, PA",
+  "New Bedford, MA",
+  "Elizabeth, NJ",
+  "Tacoma, WA",
+  "Canton, OH",
+  "Tampa, FL",
+  "Sacramento, CA",
+  "Peoria, IL",
+  "Somerville, MA",
+  "Lowell, MA",
+  "South Bend, IN",
+  "Duluth, MN",
+  "Charlotte, NC",
+  "Utica, NY",
+  "Waterbury, CT",
+  "Shreveport, LA",
+  "Lynn, MA",
+  "Evansville, IN",
+  "Allentown, PA",
+  "El Paso, TX",
+  "Savannah, GA",
+  "Little Rock, AR",
+  "Honolulu, HT"
+ ],
+ "CAN_HOMETOWNS": [
+  "Toronto, ON",
+  "Toronto, ON",
+  "Toronto, ON",
+  "Toronto, ON",
+  "Toronto, ON",
+  "Toronto, ON",
+  "Toronto, ON",
+  "Toronto, ON",
+  "Toronto, ON",
+  "Toronto, ON",
+  "Toronto, ON",
+  "Montreal, QC",
+  "Montreal, QC",
+  "Montreal, QC",
+  "Montreal, QC",
+  "Montreal, QC",
+  "Montreal, QC",
+  "Montreal, QC",
+  "Montreal, QC",
+  "Montreal, QC",
+  "Vancouver, BC",
+  "Vancouver, BC",
+  "Vancouver, BC",
+  "Vancouver, BC",
+  "Vancouver, BC",
+  "Vancouver, BC",
+  "Vancouver, BC",
+  "Calgary, AB",
+  "Calgary, AB",
+  "Calgary, AB",
+  "Calgary, AB",
+  "Calgary, AB",
+  "Edmonton, AB",
+  "Edmonton, AB",
+  "Edmonton, AB",
+  "Edmonton, AB",
+  "Edmonton, AB",
+  "Ottawa, ON",
+  "Ottawa, ON",
+  "Ottawa, ON",
+  "Ottawa, ON",
+  "Gatineau, QC",
+  "Gatineau, QC",
+  "Gatineau, QC",
+  "Quebec City, QC",
+  "Quebec City, QC",
+  "Quebec City, QC",
+  "Quebec City, QC",
+  "Quebec City, QC",
+  "Winnipeg, MB",
+  "Winnipeg, MB",
+  "Winnipeg, MB",
+  "Winnipeg, MB",
+  "Winnipeg, MB",
+  "Hamilton, ON",
+  "Hamilton, ON",
+  "Hamilton, ON",
+  "Hamilton, ON",
+  "Kitchener, ON",
+  "Kitchener, ON",
+  "Kitchener, ON",
+  "Kitchener, ON",
+  "London, ON",
+  "London, ON",
+  "London, ON",
+  "London, ON",
+  "Victoria, BC",
+  "Victoria, BC",
+  "Victoria, BC",
+  "Victoria, BC",
+  "Halifax, NS",
+  "Halifax, NS",
+  "Halifax, NS",
+  "Halifax, NS",
+  "Oshawa, ON",
+  "Oshawa, ON",
+  "Oshawa, ON",
+  "Oshawa, ON",
+  "Windsor, ON",
+  "Windsor, ON",
+  "Windsor, ON",
+  "Windsor, ON",
+  "Saskatoon, SK",
+  "Saskatoon, SK",
+  "Saskatoon, SK",
+  "Regina, SK",
+  "Regina, SK",
+  "Regina, SK",
+  "Barrie, ON",
+  "Barrie, ON",
+  "Barrie, ON",
+  "Abbotsford, BC",
+  "Abbotsford, BC",
+  "Kelowna, BC",
+  "Kelowna, BC",
+  "Sherbrooke, QC",
+  "Sherbrooke, QC",
+  "Trois-Rivieres, QC",
+  "Trois-Rivieres, QC",
+  "Guelph, ON",
+  "Guelph, ON",
+  "Kingston, ON",
+  "Kingston, ON",
+  "Moncton, NB",
+  "Moncton, NB",
+  "Sudbury, ON",
+  "Sudbury, ON",
+  "Chicoutimi-Jonquiere, QC",
+  "Chicoutimi-Jonquiere, QC",
+  "Thunder Bay, ON",
+  "Thunder Bay, ON",
+  "Kanata, ON",
+  "Kanata, ON",
+  "Saint John, NB",
+  "Saint John, NB",
+  "Brantford, ON",
+  "Red Deer, AB",
+  "Nanaimo, BC",
+  "Lethbridge, AB",
+  "White Rock, BC",
+  "Peterborough, ON",
+  "Sarnia, ON",
+  "Milton, ON",
+  "Kamloops, BC",
+  "Chateauguay, QC",
+  "Sault Ste. Marie, ON",
+  "Chilliwack, BC",
+  "Drummondville, QC",
+  "Saint-Jerome, QC",
+  "Medicine Hat, AB",
+  "Prince George, BC",
+  "Belleville, ON",
+  "Fredericton, NB",
+  "Fort McMurray, AB",
+  "Granby, QC",
+  "Grande Prairie, AB",
+  "North Bay, ON",
+  "Beloeil, QC",
+  "Cornwall, ON",
+  "Saint-Hyacinthe, QC",
+  "Shawinigan, QC",
+  "Brandon, MB",
+  "Vernon, BC",
+  "Chatham, ON",
+  "Joliette, QC",
+  "Charlottetown, PE",
+  "Airdrie, AB",
+  "Victoriaville, QC",
+  "St. Thomas, ON",
+  "Courtenay, BC",
+  "Georgetown, ON",
+  "Rimouski, QC",
+  "Woodstock, ON",
+  "Sorel-Tracy, QC",
+  "Penticton, BC",
+  "Prince Albert, SK",
+  "Campbell River, BC",
+  "Moose Jaw, SK",
+  "Cape Breton-Sydney, NS",
+  "Midland, ON",
+  "Leamington, ON",
+  "Stratford, ON",
+  "Orangeville, ON",
+  "Timmins, ON",
+  "Orillia, ON",
+  "Walnut Grove, BC",
+  "Spruce Grove, AB",
+  "Lloydminster, AB",
+  "Lloydminster, SK",
+  "Alma, QC",
+  "Bolton, ON",
+  "Saint-Georges, QC",
+  "Stouffville, ON",
+  "Okotoks, AB",
+  "Duncan, BC",
+  "Parksville, BC",
+  "Leduc, AB",
+  "Val-d'Or, QC",
+  "Rouyn-Noranda, QC",
+  "Buckingham, QC"
+ ],
+ "DAMAGE_TYPES": [
+  {
+   "name": "Main Gun Malfunction",
+   "order": "Repair Main Gun",
+   "repair_score": 4,
+   "break_score": 11,
+   "break_result": "Main Gun Broken",
+   "auto_repair": true
+  },
+  {
+   "name": "Main Gun Broken",
+   "order": "",
+   "repair_score": 0,
+   "break_score": 0,
+   "break_result": "",
+   "auto_repair": false
+  },
+  {
+   "name": "Gun Sight Broken",
+   "order": "",
+   "repair_score": 0,
+   "break_score": 0,
+   "break_result": "",
+   "auto_repair": false
+  },
+  {
+   "name": "Engine Knocked Out",
+   "order": "",
+   "repair_score": 0,
+   "break_score": 0,
+   "break_result": "",
+   "auto_repair": false
+  },
+  {
+   "name": "Turret Traverse Malfunction",
+   "order": "Repair Turret Traverse",
+   "repair_score": 4,
+   "break_score": 0,
+   "break_result": "Turret Traverse Broken",
+   "auto_repair": true
+  },
+  {
+   "name": "Turret Traverse Broken",
+   "order": "",
+   "repair_score": 0,
+   "break_score": 0,
+   "break_result": "",
+   "auto_repair": false
+  },
+  {
+   "name": "Radio Malfunction",
+   "order": "Repair Radio",
+   "repair_score": 6,
+   "break_score": 12,
+   "break_result": "Radio Broken",
+   "auto_repair": true
+  },
+  {
+   "name": "Radio Broken",
+   "order": "",
+   "repair_score": 0,
+   "break_score": 0,
+   "break_result": "",
+   "auto_repair": false
+  },
+  {
+   "name": "Intercom Malfunction",
+   "order": "Repair Intercom",
+   "repair_score": 8,
+   "break_score": 12,
+   "break_result": "Intercom Broken",
+   "auto_repair": true
+  },
+  {
+   "name": "Intercom Broken",
+   "order": "",
+   "repair_score": 0,
+   "break_score": 0,
+   "break_result": "",
+   "auto_repair": false
+  },
+  {
+   "name": "AA MG Malfunction",
+   "order": "Repair AA MG",
+   "repair_score": 8,
+   "break_score": 12,
+   "break_result": "AA MG Broken",
+   "auto_repair": true
+  },
+  {
+   "name": "AA MG Broken",
+   "order": "",
+   "repair_score": 0,
+   "break_score": 0,
+   "break_result": "",
+   "auto_repair": false
+  },
+  {
+   "name": "Co-ax MG Malfunction",
+   "order": "Repair Co-ax MG",
+   "repair_score": 8,
+   "break_score": 12,
+   "break_result": "Co-ax MG Broken",
+   "auto_repair": true
+  },
+  {
+   "name": "Co-ax MG Broken",
+   "order": "",
+   "repair_score": 0,
+   "break_score": 0,
+   "break_result": "",
+   "auto_repair": false
+  },
+  {
+   "name": "Bow MG Malfunction",
+   "order": "Repair Bow MG",
+   "repair_score": 8,
+   "break_score": 12,
+   "break_result": "Bow MG Broken",
+   "auto_repair": true
+  },
+  {
+   "name": "Bow MG Broken",
+   "order": "",
+   "repair_score": 0,
+   "break_score": 0,
+   "break_result": "",
+   "auto_repair": false
+  }
+ ],
+ "ENDING_DAMAGES": [
+  "Gun Sight Broken",
+  "Main Gun Broken",
+  "Turret Traverse Broken"
+ ],
+ "HELP_TEXT": [
+  [
+   "AP",
+   "AP refers to an Armour-piercing gun shell. As the shell is designed to punch through armour,\nit has a minimal explosive charge and thus will do no significant damage to infantry units,\nincluding AT guns. Only Direct Fire mode can be used with this type of shell. Enemy tanks,\nSPGs, and AT guns will always use AP fire against you and friendly armour.\n"
+  ],
+  [
+   "HVAP",
+   "High velocity Armour-piercing gun shell. Produced for the 76mm guns on American tank\ndestroyers, they consist of a dense tungsten carbine core surrounded by an aluminium casing.\nThe shell was able to penetrate armour at much further ranges than the standard 76mm AP\nshell. They were normally only issued to Tank Destroyers. Their use by M4 Sherman crews in\nthis and other simulations is not supported by historical evidence, but rather represents\na few shells 'appropriated' from supplies.\n"
+  ],
+  [
+   "APDS",
+   "Armour-Piercing Discarding Sabot gun shell. A type of shell with a dense core surrounded by\npedal-shaped sabots that separate from the core in flight. Very effective against armour.\nAPDS rounds in British and Commonwealth forces were rare up to late 1944.\n"
+  ],
+  [
+   "HE",
+   "HE refers to a High-explosive gun shell. These shells are designed for use against lightly\nor unarmoured vehicles, gun teams, and other infantry. Fully armoured vehicles will normally\nonly be damaged by HE in the case of a Critical Hit. HE can be fired in either Direct or Area\nfire mode. En route to your starting location, you will use a random number of HE shells\nsuppressing infantry attacks. You can also use HE as advancing fire when moving into an\nenemy-held area.\n"
+  ],
+  [
+   "WP",
+   "WP refers to a White Phosphorus smoke-producing shell. WP burns quickly producing a blanket of\nsmoke. They are harmful to anyone nearby, and thus are only used against enemy positions. WP\nmust be fired in Area Fire mode. A successful hit with WP produces 1 Smoke Factor in the target's\nhex. Infantry units hit by a WP must pass a Pin test or be pinned.\n"
+  ],
+  [
+   "HCBI",
+   "HCBI refers to a Hexachlorothane-Base Initiating smoke-producing shell. HCBI produces a great deal\nof smoke, with the benefit of being safe to use near friendly forces. Only a limited number\nof HCBI shells are available each day. HCBI must be fired in Area Fire mode. A successful hit\nwith HCBI produces 2 Smoke Factors in the target's hex.\n"
+  ],
+  [
+   "M4 Sherman",
+   "A medium tank produced by the United States and in service from 1942 to 1955 in the American\narmed forces. There were over a dozen variants of this tank produced, plus other vehicles that\nwere built on its chassis or hull. The original M4 was intended for infantry support and mobile\nattack, and was vastly outclassed by most other medium and heavy German tanks in the later part\nof the war.\n"
+  ],
+  [
+   "Hidden",
+   "Hidden units are enemy units that you know are in the area, but to which you do not have a direct\nline of sight. Hidden units cannot be targeted by your tank, but nor can they initiate attacks\nagainst you. Units remain hidden until either they or you change their position; no spotting checks\ncan reveal them unless one of you moves.\n"
+  ],
+  [
+   "Unspotted",
+   "Unspotted units are enemy units that have been reported by friendly observers but which have not yet\nbeen spotted by the crew of your tank. Unspotted units can attack you and friendly units, but you\ncannot attack them until they are spotted.\n"
+  ],
+  [
+   "Unidentified",
+   "Unidentified units have been spotted by the crew of your tank, but you do not yet know what specific\ntype of tank, self-propelled gun, or AT gun they are until they are Identified. Unidentified units\nattack and can be targeted as normal, but you do not know how powerful your enemy is until you\ncan successfully identify it.\n"
+  ],
+  [
+   "Call Artillery",
+   "Call Artillery is an action used on an adjacent enemy-controlled area in the campaign day map. If\nsuccessful, an artillery strike is called in on the map area. The action takes 15 mins. of\ntime. The chance of success depends on your current artillery chance, which decreases by one\neach time a strike is successfully called in.\n"
+  ],
+  [
+   "Hull Down",
+   "A vehicle that is Hull Down has its hull hidden behind something that will absorb incoming\nfire, such as a hill or stone wall. Targets that are Hull Down are not affected by hits\nthat would normally affect the hull, and are thus much harder to hit effectively. If your\ntank is Hull Down, you cannot fire the Hull MG. Hull Down is lost if your tank moves, and may\nbe lost if your tank pivots, and if lost must be regained via the appropriate order to the Driver.\n"
+  ],
+  [
+   "Rate of Fire",
+   "Rate of Fire (RoF) means that the Gunner and Loader have worked quickly enough to fire off\nmultiple shells at the same target in quick succession in the same turn. In order to maintain RoF,\nyou must\nreload a shell into the main gun, and the shell must be compatible with the current target\ntype. So if you fire an AP shell in Direct Fire and reload a WP shell, you cannot maintain\nRoF since WP must be fired in Area Fire mode. The Gunner's and Loader's skills can improve\nthe chance of maintaining RoF. If you are reloading from the Ready Rack then the chance is\ngreatly increased; otherwise, if the Assistant Driver is on Pass Ammo orders, then he will\nincrease the chance of maintaining RoF. You don't have to use the extra shot;\npress [End] or [Space] instead to progress to the next phase.\n"
+  ],
+  [
+   "VP",
+   "VP refers to Victory Points. You are awarded VP for capturing areas on the campaign day map,\nand for your tank destroying units during an Encounter. Your final VP indicates how\nsuccessful your campaign has been.\n"
+  ],
+  [
+   "Armour",
+   "All vehicles in the game are protected by some level of armour. When determining if a hit\non a unit destroys it or not, the armour value of the hit location is used to calculate\nthe odds of penetrating the armour and destroying the unit. Vehicles can have up to four\ndifferent armour values: one each for the turret front and sides, and one each for the hull\nfront and sides. Armour on the rear of the vehicle is always one level lower than the\nside of the same location. Armour levels progress as follows: 0, 1, 2, 3, 4, 6, 8, 11,\n14, 18, and 26.\n"
+  ],
+  [
+   "Advance Mission",
+   "In an Advance mission your task is to move through the map, capturing areas and destroying\nany enemy resistance you encounter. If you can capture your exit area before nightfall you\nwill be awarded bonus Victory Points and will have the opportunity to continue advancing\ninto a new map zone.\n"
+  ],
+  [
+   "Battle Mission",
+   "In a Battle mission your task is to move through the map and capture enemy-controlled\nareas, but the resistance you meet will be much stronger, better prepared, and better\nfortified than in an Advance mission. Considering making full use of artillery and air\nsupport, as well as advancing fire. Capturing your exit area awards you bonus VP as\nnormal.\n"
+  ],
+  [
+   "Counterattack Mission",
+   "A Counterattack is quite different from an Advance or Battle mission. Since the enemy is\nadvancing on you, you begin at the top of the map and the enemy comes to you. If your map\narea is surrounded by enemy-controlled areas, your battlegroup must move to rejoin your\nbattle line. Once an encounter begins you always begin Stopped and Hull Down, and\nhave a chance to ambush the enemy and attack first. Victory Points are only awarded for\ndestroying enemy units.\n"
+  ],
+  [
+   "Direct Fire",
+   "In this firing mode you aim the shot directly at the enemy target. The to-hit roll is\naffected by range, smoke, terrain, etc. modifiers. Must be used with AP, HVAP, and APDS;\nmay be used with HE; may not be used with WP and HCBI ammo.\n"
+  ],
+  [
+   "Area Fire",
+   "In this firing mode you aim the shot toward the general location of the enemy target. The\nto-hit roll has no modifier for terrain, but any terrain modifier will be applied to any\nsubsequent to-kill roll. This makes it easier to hit with smoke rounds, and gives a greater\nchance of pinning a target infantry unit when a direct hit would be unlikely.\nMay be used with HE; may not be used with AP, HVAP, and APDS; must be used with WP and HCBI.\n"
+  ],
+  [
+   "Skill Activations",
+   "Crew skills are automatically tested for activation every time they have the possibility of\nbeing activated. For example, a skill that affects firing with the main gun will be checked\nevery time the main gun is fired.\n"
+  ]
+ ],
+ "TITLE": [
+  [
+   1,
+   6,
+   2,
+   6,
+   3,
+   3,
+   3,
+   3,
+   2,
+   6,
+   2,
+   3,
+   2,
+   3,
+   1,
+   6,
+   3,
+   6,
+   1,
+   6
+  ],
+  [
+   0,
+   8,
+   1,
+   7,
+   2,
+   4,
+   1,
+   4,
+   1,
+   8,
+   1,
+   3,
+   2,
+   3,
+   1,
+   7,
+   2,
+   6,
+   1,
+   7
+  ],
+  [
+   0,
+   8,
+   1,
+   8,
+   1,
+   9,
+   1,
+   8,
+   1,
+   3,
+   2,
+   3,
+   1,
+   8,
+   1,
+   6,
+   1,
+   8
+  ],
+  [
+   0,
+   3,
+   2,
+   3,
+   1,
+   3,
+   2,
+   3,
+   1,
+   9,
+   1,
+   3,
+   2,
+   3,
+   1,
+   3,
+   2,
+   3,
+   1,
+   3,
+   2,
+   3,
+   1,
+   3,
+   4,
+   3,
+   2,
+   3
+  ],
+  [
+   0,
+   3,
+   2,
+   3,
+   1,
+   3,
+   2,
+   3,
+   1,
+   3,
+   1,
+   1,
+   1,
+   3,
+   1,
+   3,
+   2,
+   3,
+   1,
+   3,
+   2,
+   3,
+   1,
+   3,
+   2,
+   3,
+   1,
+   3,
+   4,
+   3,
+   2,
+   3
+  ],
+  [
+   0,
+   3,
+   2,
+   3,
+   1,
+   3,
+   2,
+   2,
+   2,
+   3,
+   3,
+   3,
+   1,
+   3,
+   2,
+   3,
+   1,
+   3,
+   2,
+   3,
+   1,
+   3,
+   2,
+   2,
+   2,
+   4,
+   3,
+   3,
+   2,
+   3
+  ],
+  [
+   0,
+   8,
+   1,
+   6,
+   3,
+   3,
+   3,
+   3,
+   1,
+   3,
+   2,
+   3,
+   1,
+   3,
+   2,
+   3,
+   1,
+   6,
+   3,
+   4,
+   3,
+   3,
+   2,
+   3
+  ],
+  [
+   0,
+   3,
+   2,
+   3,
+   1,
+   3,
+   2,
+   2,
+   2,
+   3,
+   3,
+   3,
+   1,
+   3,
+   2,
+   3,
+   1,
+   3,
+   2,
+   3,
+   1,
+   3,
+   2,
+   2,
+   2,
+   3,
+   4,
+   3,
+   2,
+   3
+  ],
+  [
+   0,
+   3,
+   2,
+   3,
+   1,
+   3,
+   2,
+   3,
+   1,
+   3,
+   3,
+   3,
+   1,
+   3,
+   2,
+   3,
+   1,
+   3,
+   2,
+   3,
+   1,
+   3,
+   2,
+   3,
+   1,
+   3,
+   4,
+   3,
+   2,
+   3
+  ],
+  [
+   0,
+   3,
+   2,
+   3,
+   1,
+   3,
+   2,
+   3,
+   1,
+   3,
+   3,
+   3,
+   1,
+   8,
+   1,
+   8,
+   1,
+   3,
+   2,
+   3,
+   1,
+   6,
+   1,
+   8
+  ],
+  [
+   0,
+   3,
+   2,
+   3,
+   1,
+   3,
+   2,
+   3,
+   1,
+   3,
+   3,
+   3,
+   1,
+   8,
+   1,
+   8,
+   1,
+   3,
+   2,
+   3,
+   1,
+   6,
+   1,
+   7
+  ],
+  [
+   0,
+   3,
+   2,
+   3,
+   1,
+   3,
+   2,
+   3,
+   1,
+   3,
+   3,
+   3,
+   2,
+   6,
+   3,
+   6,
+   2,
+   3,
+   2,
+   3,
+   1,
+   6,
+   1,
+   6
+  ],
+  [
+   0
+  ],
+  [
+   1,
+   7,
+   2,
+   6,
+   2,
+   3,
+   3,
+   3,
+   1,
+   3,
+   3,
+   3,
+   2,
+   6,
+   2,
+   3,
+   2,
+   3,
+   1,
+   6,
+   3,
+   6,
+   1,
+   6
+  ],
+  [
+   0,
+   8,
+   1,
+   8,
+   1,
+   4,
+   1,
+   4,
+   1,
+   4,
+   1,
+   4,
+   1,
+   8,
+   1,
+   3,
+   2,
+   3,
+   1,
+   7,
+   2,
+   6,
+   1,
+   7
+  ],
+  [
+   0,
+   8,
+   1,
+   8,
+   1,
+   9,
+   1,
+   9,
+   1,
+   8,
+   1,
+   3,
+   2,
+   3,
+   1,
+   8,
+   1,
+   6,
+   1,
+   8
+  ],
+  [
+   0,
+   3,
+   6,
+   3,
+   2,
+   3,
+   1,
+   9,
+   1,
+   9,
+   1,
+   3,
+   2,
+   3,
+   1,
+   4,
+   1,
+   3,
+   1,
+   3,
+   2,
+   3,
+   1,
+   3,
+   4,
+   3,
+   2,
+   3
+  ],
+  [
+   0,
+   3,
+   6,
+   3,
+   2,
+   3,
+   1,
+   3,
+   1,
+   1,
+   1,
+   3,
+   1,
+   3,
+   1,
+   1,
+   1,
+   3,
+   1,
+   3,
+   2,
+   3,
+   1,
+   8,
+   1,
+   3,
+   2,
+   3,
+   1,
+   3,
+   4,
+   3,
+   2,
+   3
+  ],
+  [
+   0,
+   3,
+   6,
+   3,
+   2,
+   3,
+   1,
+   3,
+   3,
+   3,
+   1,
+   3,
+   3,
+   3,
+   1,
+   3,
+   2,
+   3,
+   1,
+   8,
+   1,
+   3,
+   2,
+   3,
+   1,
+   4,
+   3,
+   3,
+   2,
+   2
+  ],
+  [
+   0,
+   3,
+   6,
+   3,
+   2,
+   3,
+   1,
+   3,
+   3,
+   3,
+   1,
+   3,
+   3,
+   3,
+   1,
+   8,
+   1,
+   8,
+   1,
+   3,
+   2,
+   3,
+   1,
+   4,
+   3,
+   6
+  ],
+  [
+   0,
+   3,
+   6,
+   3,
+   2,
+   3,
+   1,
+   3,
+   3,
+   3,
+   1,
+   3,
+   3,
+   3,
+   1,
+   3,
+   2,
+   3,
+   1,
+   3,
+   1,
+   4,
+   1,
+   3,
+   2,
+   3,
+   1,
+   3,
+   4,
+   3,
+   2,
+   2
+  ],
+  [
+   0,
+   3,
+   6,
+   3,
+   2,
+   3,
+   1,
+   3,
+   3,
+   3,
+   1,
+   3,
+   3,
+   3,
+   1,
+   3,
+   2,
+   3,
+   1,
+   3,
+   2,
+   3,
+   1,
+   3,
+   2,
+   3,
+   1,
+   3,
+   4,
+   3,
+   2,
+   3
+  ],
+  [
+   0,
+   8,
+   1,
+   8,
+   1,
+   3,
+   3,
+   3,
+   1,
+   3,
+   3,
+   3,
+   1,
+   3,
+   2,
+   3,
+   1,
+   3,
+   2,
+   3,
+   1,
+   8,
+   1,
+   6,
+   1,
+   3,
+   2,
+   3
+  ],
+  [
+   0,
+   8,
+   1,
+   8,
+   1,
+   3,
+   3,
+   3,
+   1,
+   3,
+   3,
+   3,
+   1,
+   3,
+   2,
+   3,
+   1,
+   3,
+   2,
+   3,
+   1,
+   7,
+   2,
+   6,
+   1,
+   3,
+   2,
+   3
+  ],
+  [
+   1,
+   7,
+   2,
+   6,
+   2,
+   3,
+   3,
+   3,
+   1,
+   3,
+   3,
+   3,
+   1,
+   3,
+   2,
+   3,
+   1,
+   3,
+   2,
+   3,
+   1,
+   6,
+   3,
+   6,
+   1,
+   3,
+   2,
+   3
+  ]
+ ],
+ "TUTORIAL_TEXT": {
+  "welcome": "Welcome to Armoured Commander! Since this is your first time playing (or you deleted your\nbones file) messages such as these will pop up from time to time to help get you started.\nIf you'd rather play without them, simply toggle them off in the Settings menu.",
+  "advance_mission": "In an Advance mission your task is to move through the map, capturing areas\nand destroying any enemy resistance you encounter. If you can capture your\nexit area before nightfall you will be awarded bonus Victory Points and will\nhave the opportunity to continue advancing into a new map zone.",
+  "battle_mission": "In a Battle mission your task is to move through the map and capture enemy-controlled\nareas, but the resistance you meet will be much stronger, better prepared, and better\nfortified than in an Advance mission. Considering making full use of artillery and\nair support, as well as advancing fire. Capturing your exit area awards you bonus VP as\nnormal.",
+  "counterattack_mission": "A Counterattack is quite different from an Advance or Battle mission. Since the\nenemy is advancing on you, you do not move your battlegroup around the map. Instead, you\nremain in place and await for the enemy to come to you. Between encounters you always\nhave the chance to resupply. Once an encounter begins you always begin Stopped and Hull\nDown, and have a chance to ambush the enemy and attack first. Victory Points are only\nawarded for destroying enemy units."
+ },
+ "CREDITS_TEXT": [
+  "*** Armoured Commander ***",
+  "",
+  "",
+  "The World War II Tank Commander Roguelike",
+  "",
+  "",
+  "Designed and Programmed by",
+  "Gregory Adam Scott",
+  "",
+  "Maintained by Eric Normandeau",
+  "since version 1.04",
+  "",
+  "",
+  "* Inspired By *",
+  "Advanced Squad Leader by Don Greenwood, 1985",
+  "Patton's Best by Bruce Shelley, 1987",
+  "Flames of War by Phil Yates, 2002",
+  "",
+  "",
+  "* Resources Used *",
+  "/r/roguelikedev",
+  "Temple of the Roguelike",
+  "Roguebasin",
+  "The Doryen Library (libtcod)",
+  "",
+  "",
+  "* Special Thanks To *",
+  "Josh Ge, Grid Sage Games",
+  "Galaga Galaxian",
+  "Zomb Lee Youtube channel",
+  "Dimosa, Dimosa's Quest Youtube channel",
+  "Tim Stone, Rock Paper Shotgun's The Flare Path",
+  "Aresbece",
+  "Joe Carstensen"
+ ]
+}

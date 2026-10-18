@@ -3,7 +3,7 @@
 //! screens not ported yet.
 #![allow(dead_code)]
 
-#[derive(Clone, Copy, PartialEq, Eq, Debug, Default)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Default, serde::Deserialize)]
 pub struct Color(pub u8, pub u8, pub u8);
 
 pub const BLACK: Color = Color(0, 0, 0);
