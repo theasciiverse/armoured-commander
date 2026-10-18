@@ -161,6 +161,93 @@ impl Console {
         let src = self.clone();
         Console::blit(&src, sx, sy, w, h, self, dx, dy);
     }
+
+    /// The original darkens the screen behind every window by blitting a
+    /// cleared black console over it at foreground 0.0 and background 0.7
+    /// (`console_blit(con, ..., 0, 0, 0, 0.0, 0.7)`). For a blank black
+    /// source, libtcod's faded blit moves both colours of each cell 70% of
+    /// the way to black and keeps the glyphs.
+    pub fn darken(&mut self, amount: f32) {
+        for c in &mut self.cells {
+            c.fg = color::lerp(c.fg, color::BLACK, amount);
+            c.bg = color::lerp(c.bg, color::BLACK, amount);
+        }
+    }
+
+    /// `console_print_ex` with `BKGND_SET`: as `print_ex`, and the default
+    /// background under every printed cell.
+    pub fn print_ex_bg(&mut self, x: i32, y: i32, align: Align, text: &str) {
+        let width = glyph::encode(text).iter().filter(|&&c| !is_control(c)).count() as i32;
+        let x0 = match align {
+            Align::Left => x,
+            Align::Center => x - width / 2,
+            Align::Right => x - width + 1,
+        };
+        for i in 0..width {
+            if let Some(n) = self.index(x0 + i, y) {
+                self.cells[n].bg = self.bg;
+            }
+        }
+        self.print_ex(x, y, align, text);
+    }
+
+    /// `console_put_char` with `BKGND_SET`.
+    pub fn put_char_bg(&mut self, x: i32, y: i32, ch: u8) {
+        let (fg, bg) = (self.fg, self.bg);
+        self.set_cell(x, y, Cell { ch, fg, bg });
+    }
+
+    /// `console_set_char_background`.
+    pub fn set_char_bg(&mut self, x: i32, y: i32, bg: Color) {
+        if let Some(i) = self.index(x, y) {
+            self.cells[i].bg = bg;
+        }
+    }
+
+    /// `console_get_char_background`; black outside the console, as libtcod.
+    pub fn char_bg(&self, x: i32, y: i32) -> Color {
+        self.cell(x, y).map_or(color::BLACK, |c| c.bg)
+    }
+
+    /// `console_hline` with `BKGND_DEFAULT`: a run of single lines in the
+    /// default foreground.
+    pub fn hline(&mut self, x: i32, y: i32, len: i32) {
+        for i in 0..len {
+            self.put_char(x + i, y, 196);
+        }
+    }
+
+    /// `console_vline` with `BKGND_DEFAULT`.
+    pub fn vline(&mut self, x: i32, y: i32, len: i32) {
+        for i in 0..len {
+            self.put_char(x, y + i, 179);
+        }
+    }
+
+    /// `console_print_frame`: a single-line box in the default foreground.
+    /// `set_bg` is `BKGND_SET` for the border (otherwise the background is
+    /// left alone, as `BKGND_DEFAULT` does); `clear` fills the inside with
+    /// the default background.
+    pub fn frame(&mut self, x: i32, y: i32, w: i32, h: i32, clear: bool, set_bg: bool) {
+        if clear {
+            self.rect(x + 1, y + 1, w - 2, h - 2, true);
+        }
+        let put = |con: &mut Console, xx, yy, ch| {
+            if set_bg { con.put_char_bg(xx, yy, ch) } else { con.put_char(xx, yy, ch) }
+        };
+        for i in 1..w - 1 {
+            put(self, x + i, y, 196);
+            put(self, x + i, y + h - 1, 196);
+        }
+        for i in 1..h - 1 {
+            put(self, x, y + i, 179);
+            put(self, x + w - 1, y + i, 179);
+        }
+        put(self, x, y, 218);
+        put(self, x + w - 1, y, 191);
+        put(self, x, y + h - 1, 192);
+        put(self, x + w - 1, y + h - 1, 217);
+    }
 }
 
 fn is_control(c: u8) -> bool {

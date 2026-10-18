@@ -109,45 +109,47 @@ impl Defs {
 }
 
 /// A vehicle stat value as the original writes them: a string, a number
-/// or a list of numbers (`rarity`).
+/// or a list of numbers (`rarity`). `Bool` is what `SetVehicleStats` turns
+/// an empty-string flag into.
 #[derive(Deserialize, Debug, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum Stat {
+    Bool(bool),
     Int(i32),
     Str(String),
     List(Vec<i32>),
 }
 
-/// One entry of `VEHICLE_TYPES`: its id and its stats in the original's
-/// order. Some stats are flags that only matter by being present
-/// (`'HVSS' in stats`), so this stays a keyed list rather than a struct.
-#[derive(Deserialize, Debug, Clone)]
-pub struct VehicleType {
-    pub id: String,
-    stats: Vec<(String, Stat)>,
-}
+/// A unit's stats dictionary, in the original's order. Some stats are
+/// flags that only matter by being present (`'HVSS' in stats`), so this
+/// stays a keyed list rather than a struct.
+#[derive(Deserialize, Debug, Clone, Default, PartialEq)]
+#[serde(transparent)]
+pub struct Stats(Vec<(String, Stat)>);
 
-#[allow(dead_code)]
-impl VehicleType {
+impl Stats {
     pub fn get(&self, key: &str) -> Option<&Stat> {
-        self.stats.iter().find(|(k, _)| k == key).map(|(_, v)| v)
+        self.0.iter().find(|(k, _)| k == key).map(|(_, v)| v)
     }
 
+    /// `key in stats`
     pub fn has(&self, key: &str) -> bool {
         self.get(key).is_some()
     }
 
-    pub fn str(&self, key: &str) -> Option<&str> {
-        match self.get(key)? {
-            Stat::Str(s) => Some(s),
-            _ => None,
+    /// `stats[key]` for a string stat; empty when missing.
+    pub fn str(&self, key: &str) -> &str {
+        match self.get(key) {
+            Some(Stat::Str(s)) => s,
+            _ => "",
         }
     }
 
-    pub fn int(&self, key: &str) -> Option<i32> {
-        match self.get(key)? {
-            Stat::Int(n) => Some(*n),
-            _ => None,
+    /// `stats[key]` for a number stat; 0 when missing.
+    pub fn int(&self, key: &str) -> i32 {
+        match self.get(key) {
+            Some(Stat::Int(n)) => *n,
+            _ => 0,
         }
     }
 
@@ -158,9 +160,24 @@ impl VehicleType {
         }
     }
 
-    pub fn stats(&self) -> impl Iterator<Item = (&str, &Stat)> {
-        self.stats.iter().map(|(k, v)| (k.as_str(), v))
+    /// `stats[key] = value`
+    pub fn set(&mut self, key: &str, value: Stat) {
+        match self.0.iter_mut().find(|(k, _)| k == key) {
+            Some((_, v)) => *v = value,
+            None => self.0.push((key.to_string(), value)),
+        }
     }
+
+    pub fn iter(&self) -> impl Iterator<Item = (&str, &Stat)> {
+        self.0.iter().map(|(k, v)| (k.as_str(), v))
+    }
+}
+
+/// One entry of `VEHICLE_TYPES`: its id and its stats as written.
+#[derive(Deserialize, Debug, Clone)]
+pub struct VehicleType {
+    pub id: String,
+    pub stats: Stats,
 }
 
 #[derive(Deserialize)]
@@ -352,11 +369,11 @@ mod tests {
         let v = vehicle_types();
         assert_eq!(v.len(), 32);
         let m4 = vehicle_type("M4 Turret A").unwrap();
-        assert_eq!(m4.str("main_gun"), Some("75"));
-        assert_eq!(m4.int("hull_front_armour"), Some(8));
-        assert_eq!(m4.list("rarity"), Some(&[6, 5, 3, 1, 1, 1, 1, 1, 1][..]));
-        assert!(!m4.has("smoke_mortar"));
-        assert!(vehicle_type("M4 Turret B").unwrap().has("smoke_mortar"));
+        assert_eq!(m4.stats.str("main_gun"), "75");
+        assert_eq!(m4.stats.int("hull_front_armour"), 8);
+        assert_eq!(m4.stats.list("rarity"), Some(&[6, 5, 3, 1, 1, 1, 1, 1, 1][..]));
+        assert!(!m4.stats.has("smoke_mortar"));
+        assert!(vehicle_type("M4 Turret B").unwrap().stats.has("smoke_mortar"));
     }
 
     #[test]

@@ -1,32 +1,48 @@
+// Much of the campaign is translated ahead of the screens that call it.
+#![allow(dead_code)]
+
+mod bones;
+mod campaign;
 mod color;
+mod combat;
 mod console;
-#[allow(dead_code)] // read by the rules as they are translated
+mod crew;
 mod defs;
+mod draw;
+mod encounter;
+mod enemy;
+mod game;
 mod glyph;
+mod layout;
+mod model;
 mod rng;
+mod screens;
+mod tank;
 mod title;
+mod ui;
 mod xp;
 
 use console::Console;
-use ratatui::buffer::Buffer;
+use game::Game;
 use ratatui::crossterm::event::{self, Event, KeyCode, KeyEventKind, KeyModifiers};
-use ratatui::layout::Rect;
-use ratatui::style::Color as TuiColor;
 use rng::Rng;
 use std::io;
 use std::time::{Duration, Instant};
 use title::{Choice, MainMenu};
+use ui::Screen;
 
-const HELP: &str = "armcom [--art]
+const HELP: &str = "armcom [--art | --encounter [advance|battle|counterattack]]
 
 Armoured Commander, the World War II tank commander roguelike by Gregory
-Adam Scott, on its way to the terminal. Early port: the main menu runs,
-the campaign does not yet.
+Adam Scott, on its way to the terminal. Early port: the main menu and a
+single encounter run; the campaign does not yet.
 
-  --art     browse the game's REXPaint art (tank diagrams, campaign maps);
-            left/right to change picture, q to quit
+  --art        browse the game's REXPaint art (tank diagrams, campaign maps);
+               left/right to change picture, q to quit
+  --encounter  go straight into one encounter with a fresh crew, for
+               trying the battle rules (default: advance)
 
-The original screen is 149x61; a smaller terminal shows its middle.
+Needs a terminal of at least 100x30.
 Session log: RUST_LOG=debug armcom 2>armcom.log";
 
 const FRAME: Duration = Duration::from_millis(20);
@@ -55,6 +71,21 @@ fn main() -> io::Result<()> {
         return Ok(());
     }
     let mut rng = Rng::from_clock();
+
+    if let Some(n) = args.iter().position(|a| a == "--encounter") {
+        let scen = match args.get(n + 1).map(String::as_str) {
+            Some("battle") => "Battle",
+            Some("counterattack") => "Counterattack",
+            _ => "Advance",
+        };
+        log::info!("start: encounter ({scen})");
+        let terminal = ratatui::init();
+        let _ = ratatui::crossterm::execute!(io::stdout(), event::EnableMouseCapture);
+        let mut game = Game::new(Screen::new(Some(terminal)), rng);
+        game.debug_encounter(scen);
+        ui::quit();
+    }
+
     let mode = if args.iter().any(|a| a == "--art") {
         art(0)
     } else {
@@ -91,8 +122,8 @@ fn run(terminal: &mut ratatui::DefaultTerminal, mut mode: Mode, rng: &mut Rng) -
         terminal.draw(|frame| {
             let area = frame.area();
             let buf = frame.buffer_mut();
-            match &mode {
-                Mode::Menu(menu) => present(&menu.con, area, buf, note.as_ref().map(|(n, _)| n.as_str())),
+            let (con, caption) = match &mode {
+                Mode::Menu(menu) => (&menu.con, note.as_ref().map(|(n, _)| n.clone())),
                 Mode::Art { index, con } => {
                     let (name, _) = xp::FILES[*index];
                     let caption = format!(
@@ -102,7 +133,17 @@ fn run(terminal: &mut ratatui::DefaultTerminal, mut mode: Mode, rng: &mut Rng) -
                         index + 1,
                         xp::FILES.len()
                     );
-                    present(con, area, buf, Some(&caption));
+                    (con, Some(caption))
+                }
+            };
+            ui::present(con, area, buf);
+            if let Some(text) = caption {
+                let y = area.y + area.height.saturating_sub(1);
+                for (i, ch) in text.chars().take(area.width as usize).enumerate() {
+                    buf[(area.x + i as u16, y)]
+                        .set_char(ch)
+                        .set_fg(ratatui::style::Color::Black)
+                        .set_bg(ratatui::style::Color::Rgb(0, 200, 255));
                 }
             }
         })?;
@@ -130,7 +171,9 @@ fn run(terminal: &mut ratatui::DefaultTerminal, mut mode: Mode, rng: &mut Rng) -
                 let KeyCode::Char(c) = key.code else { continue };
                 match menu.key(c) {
                     Some(Choice::Quit) => return Ok(()),
-                    Some(Choice::NewCampaign) => note = Some(("New Campaign is not ported yet".into(), Instant::now())),
+                    Some(Choice::NewCampaign) => {
+                        note = Some(("New Campaign is not ported yet; try armcom --encounter".into(), Instant::now()))
+                    }
                     Some(Choice::HighScores) => note = Some(("High Scores are not ported yet".into(), Instant::now())),
                     Some(Choice::Credits) => note = Some(("Credits are not ported yet".into(), Instant::now())),
                     None => {}
@@ -152,47 +195,4 @@ fn run(terminal: &mut ratatui::DefaultTerminal, mut mode: Mode, rng: &mut Rng) -
             }
         }
     }
-}
-
-/// Draw a console centred in the terminal, its middle if it does not fit,
-/// with an optional line of text along the bottom.
-fn present(con: &Console, area: Rect, buf: &mut Buffer, caption: Option<&str>) {
-    let (aw, ah) = (area.width as i32, area.height as i32);
-    // offset of the console's (0, 0) on screen; negative when cropped
-    let ox = (aw - con.w) / 2;
-    let oy = (ah - con.h) / 2;
-    for sy in 0..ah {
-        for sx in 0..aw {
-            let cell = &mut buf[(area.x + sx as u16, area.y + sy as u16)];
-            match con.cell(sx - ox, sy - oy) {
-                Some(c) => {
-                    cell.set_char(glyph::to_char(c.ch)).set_fg(rgb(c.fg)).set_bg(rgb(c.bg));
-                }
-                None => {
-                    cell.set_char(' ').set_fg(TuiColor::Reset).set_bg(TuiColor::Black);
-                }
-            }
-        }
-    }
-    let fits = con.w <= aw && con.h <= ah;
-    let mut line = caption.map(str::to_string);
-    if !fits && line.is_none() {
-        line = Some(format!(
-            "Terminal is {aw}x{ah}; the original screen is {}x{}, so this is its middle",
-            con.w, con.h
-        ));
-    }
-    if let Some(text) = line {
-        let y = area.y + area.height.saturating_sub(1);
-        for (i, ch) in text.chars().take(aw as usize).enumerate() {
-            buf[(area.x + i as u16, y)]
-                .set_char(ch)
-                .set_fg(TuiColor::Black)
-                .set_bg(TuiColor::Rgb(0, 200, 255));
-        }
-    }
-}
-
-fn rgb(c: color::Color) -> TuiColor {
-    TuiColor::Rgb(c.0, c.1, c.2)
 }

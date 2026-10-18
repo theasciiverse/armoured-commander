@@ -30,6 +30,10 @@ animated main menu work; the campaign is not translated yet.
 - The sequel, Armoured Commander II, is cloned at
   `../../references/Armoured Commander II` (GPL 3.0.2, 2020). It is a
   separate title for later; its newer Steam versions are not GPL data.
+  Every decision made here is to be looked at for reuse in II (David,
+  2026-10-18): keep the console layer, glyph table, `.xp` reader, data
+  loading and screen-layout approach free of ArmCom I specifics where
+  that costs nothing, and note here what II could take over.
 
 ## How the port is built
 
