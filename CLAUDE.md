@@ -6,8 +6,12 @@ from 1.04), for the Asciiverse catalog. The original is already made of
 character cells; it draws them into its own SDL window through libtcod.
 The port keeps the game and puts the cells in the terminal.
 
-Status: started 2026-10-13. Console layer, glyph table, `.xp` art and the
-animated main menu work; the campaign is not translated yet.
+Status: started 2026-10-13. Console layer, glyph table, `.xp` art, the
+animated main menu, and (2026-10-18) the whole encounter: battle rules,
+enemy units, crew, and the 100x30 encounter screen. `armcom --encounter
+[advance|battle|counterattack]` plays one encounter with a fresh crew.
+Not yet: the campaign (day map, calendar, refits), the info windows
+(F1 to F5), saves and the bones file screens, sound.
 
 ## Source and licence
 
@@ -95,12 +99,42 @@ Notes from the first look:
   73x51, campaign map window 90x57), so a new layout moves and resizes
   panels while their contents translate as they are.
 
+## Bugs in the original
+
+The rule (2026-10-18): fix what only affects display or crashes; keep
+what changes the game's odds, and list it here for David to decide.
+
+Fixed: `AttackPlayer` names a heard gun from one character ("7mm");
+`GetCharLocation` compares `abs(unit.x + x)`, so units in a hex could
+overlap; `GenerateName` meant to avoid duplicate names; `DepleteSmoke`
+removed from the list it looped over; HVAP/APDS against an unarmoured
+spot crashed (now the AP table, as its comment says); a unit that dies
+during its own action no longer acts again; after an ambush knocks out
+the tank, the battle is cleared instead of lingering into the campaign.
+
+Kept, to decide: the campaign files' date-based activation modifiers
+never apply (`v += mod['mod']` changes a copy); the spawn-range table
+tests `'AT'` not `'AT_GUN'`; crew wound modifiers test for `'turret'` in
+lower case, so turret hits count as hull hits; the player's gunner's
+Target Tracking is rolled when an enemy fires too; `AttackInfantry`
+returns nothing after a kill and `AttackPlayer` nothing after a
+panzerfaust, so the unit rolls another action; a repair "6 and 2" (likely
+meant double six) breaks the part; an ambush that knocks out the tank
+counts no VP for that encounter.
+
+## Tests
+
+`cargo test` includes 450 headless encounters (150 seeds, three
+missions) played by an autopilot to the end; they must all finish
+without a panic.
+
 ## Order of work
 
 1. Done: console layer, glyphs, art, main menu.
 2. Done: terminal layout agreed (see Screen size).
-3. Translate the data (`armcom_defs.py`, `armcom_vehicle_defs.py`, the
-   campaign XML) and the rules, in the order `armcom.py` reads.
+3. Done: the data. Done: the encounter. Next: the campaign (new
+   campaign, calendar, day map at terminal proportions, refits), then the
+   info windows.
 4. Saves, bones file (graveyard, high scores), sound.
 
 ## House conventions

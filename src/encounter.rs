@@ -150,6 +150,10 @@ impl Game {
 
     /// `GetEncounterInput`: one event, and the phase it moves on.
     pub fn get_encounter_input(&mut self) {
+        if self.scr.is_headless() {
+            self.autopilot();
+            return;
+        }
         self.check_for_event();
         let (mx, my) = (self.scr.mouse.cx, self.scr.mouse.cy);
         if (mx, my) != self.bt().mouseover {
@@ -392,6 +396,61 @@ impl Game {
                 }
             }
             _ => {}
+        }
+    }
+
+    /// Headless play for tests: the gunner fires at whatever he can, the
+    /// MGs likewise, and every other phase goes straight on.
+    fn autopilot(&mut self) {
+        assert!(self.bt().rounds_passed < 500, "encounter does not end");
+        let phase = self.bt().phase.clone();
+        match phase.as_str() {
+            "Orders" => {
+                if let Some(g) = self.crew_pos("Gunner") {
+                    let pick = ["Fire Main Gun", "Fire Co-Axial MG", "Rotate Turret"][self.rng.int(0, 2) as usize];
+                    if self.crew(g).orders_list.iter().any(|o| o.name == pick) {
+                        self.crewm(g).order = pick.into();
+                    }
+                }
+                if let Some(d) = self.crew_pos("Driver") {
+                    let list: Vec<String> = self.crew(d).orders_list.iter().map(|o| o.name.clone()).collect();
+                    if !list.is_empty() {
+                        let pick = self.rng.choice(&list).clone();
+                        if pick != "Abandon Tank" {
+                            self.crewm(d).order = pick;
+                        }
+                    }
+                }
+                self.next_phase();
+            }
+            "Pivot Tank" => {
+                self.tank.new_facing = self.rng.int(0, 5);
+                self.next_phase();
+            }
+            "Rotate Turret" => {
+                let cw = self.rng.int(0, 1) == 0;
+                self.rotate_turret(cw);
+                self.next_phase();
+            }
+            "Fire Main Gun" => {
+                if self.bt().target.is_some() && !self.bt().trigger_phase {
+                    self.fire_main_gun();
+                }
+                if self.bt().target.is_none() || self.bt().trigger_phase {
+                    self.btm().trigger_phase = false;
+                    self.next_phase();
+                }
+            }
+            "Fire MGs" => {
+                if self.bt().target.is_some() {
+                    self.fire_mg();
+                }
+                if self.bt().target.is_none() || self.tank.active_mg == -1 {
+                    self.btm().trigger_phase = false;
+                    self.next_phase();
+                }
+            }
+            _ => self.next_phase(),
         }
     }
 
@@ -679,6 +738,11 @@ impl Game {
                                 if !self.campaign.over {
                                     self.encounter_menu();
                                 }
+                                // the original returns with the battle still
+                                // set (its pop-ups then redraw the encounter
+                                // over the campaign) and never counts this
+                                // encounter's VP; the VP is kept as it was
+                                self.battle = None;
                                 return;
                             }
                         }
@@ -803,5 +867,32 @@ impl Game {
         t.ammo_load = "AP".into();
         t.ammo_reload = "AP".into();
         self.init_encounter(false, false);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::rng::Rng;
+    use crate::ui::Screen;
+
+    /// Whole encounters, headless, many seeds and all three missions:
+    /// they must end, and nothing may panic on the way.
+    #[test]
+    fn encounters_play_to_the_end() {
+        let mut results = std::collections::BTreeMap::new();
+        for seed in 1..=150u64 {
+            for scen in ["Advance", "Battle", "Counterattack"] {
+                let mut g = Game::new(Screen::headless(), Rng::new(seed * 7919));
+                g.campaign.animations = false;
+                g.campaign.pause_labels = false;
+                g.debug_encounter(scen);
+                assert!(g.battle.is_none(), "seed {seed} {scen}: encounter left open");
+                let outcome = if !g.tank.alive { "tank lost" } else if g.campaign.exiting { "exiting" } else { "won" };
+                *results.entry(outcome).or_insert(0) += 1;
+            }
+        }
+        eprintln!("{results:?}");
+        assert!(results.get("won").copied().unwrap_or(0) > 0);
     }
 }

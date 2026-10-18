@@ -41,8 +41,12 @@ impl Default for Bones {
     }
 }
 
-/// The player's data folder for this game.
+/// The player's data folder for this game; none in tests, so they never
+/// touch the player's files.
 pub fn data_dir() -> Option<PathBuf> {
+    if cfg!(test) {
+        return None;
+    }
     let base = std::env::var_os("XDG_DATA_HOME")
         .map(PathBuf::from)
         .or_else(|| std::env::var_os("APPDATA").map(PathBuf::from))
