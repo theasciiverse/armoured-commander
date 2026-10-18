@@ -53,6 +53,7 @@ const NOTE_FOR: Duration = Duration::from_secs(3);
 enum Mode {
     Menu(Box<MainMenu>),
     Credits(Box<credits::Credits>),
+    Scores(Box<Console>),
     Art { index: usize, con: Console },
 }
 
@@ -61,6 +62,7 @@ impl Mode {
         match self {
             Mode::Menu(_) => "menu".into(),
             Mode::Credits(_) => "credits".into(),
+            Mode::Scores(_) => "high scores".into(),
             Mode::Art { index, .. } => format!("art {}", xp::FILES[*index].0),
         }
     }
@@ -134,6 +136,7 @@ fn run(terminal: &mut ratatui::DefaultTerminal, mut mode: Mode, rng: &mut Rng) -
             let (con, caption) = match &mode {
                 Mode::Menu(menu) => (&menu.con, note.as_ref().map(|(n, _)| n.clone())),
                 Mode::Credits(c) => (&c.con, None),
+                Mode::Scores(c) => (&**c, None),
                 Mode::Art { index, con } => {
                     let (name, _) = xp::FILES[*index];
                     let caption = format!(
@@ -184,7 +187,11 @@ fn run(terminal: &mut ratatui::DefaultTerminal, mut mode: Mode, rng: &mut Rng) -
                     Some(Choice::NewCampaign) => {
                         note = Some(("New Campaign is not ported yet; try armcom --encounter".into(), Instant::now()))
                     }
-                    Some(Choice::HighScores) => note = Some(("High Scores are not ported yet".into(), Instant::now())),
+                    Some(Choice::HighScores) => {
+                        mode = Mode::Scores(Box::new(credits::high_scores()));
+                        log::info!("switch: high scores");
+                        continue;
+                    }
                     Some(Choice::Credits) => {
                         mode = Mode::Credits(Box::new(credits::Credits::new()));
                         log::info!("switch: credits");
@@ -194,6 +201,12 @@ fn run(terminal: &mut ratatui::DefaultTerminal, mut mode: Mode, rng: &mut Rng) -
                 }
                 if let Some((n, _)) = &note {
                     log::info!("menu: {n}");
+                }
+            }
+            Mode::Scores(_) => {
+                if key.code == KeyCode::Enter {
+                    mode = Mode::Menu(Box::new(MainMenu::new(rng)));
+                    log::info!("switch: menu");
                 }
             }
             Mode::Credits(c) => match key.code {

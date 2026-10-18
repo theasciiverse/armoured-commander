@@ -70,3 +70,43 @@ impl Credits {
         self.paused = !self.paused;
     }
 }
+
+/// `DisplayHighScores`: the bones file's score list. The original's 40
+/// rows do not fit in 30, so the best that fit are shown.
+pub fn high_scores() -> Console {
+    let bones = crate::bones::load();
+    let mut c = Console::new(SCREEN_WIDTH, SCREEN_HEIGHT);
+    c.set_color_control(COLCTRL_1, KEY_HIGHLIGHT_COLOR, color::BLACK);
+    c.frame(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, false, false);
+    c.fg = MENU_TITLE_COLOR;
+    c.print_ex(SCREEN_XM, 2, Align::Center, "-- High Scores --");
+    c.fg = color::WHITE;
+    let cols = [2, 17, 35, 54, 65];
+    for (x, title) in cols.iter().zip(["Campaign", "Tank", "Commander", "VP Score", "Outcome"]) {
+        c.print(*x, 4, title);
+    }
+    c.hline(2, 5, SCREEN_WIDTH - 4);
+    let mut y = 6;
+    for s in &bones.score_list {
+        if y > SCREEN_HEIGHT - 5 {
+            break;
+        }
+        let mut vp = s.vp.to_string();
+        if s.unlimited_tank_selection || s.casual_commander {
+            vp.push_str(" (");
+            if s.unlimited_tank_selection {
+                vp.push('U');
+            }
+            if s.casual_commander {
+                vp.push('C');
+            }
+            vp.push(')');
+        }
+        for (x, text) in cols.iter().zip([&s.campaign_name, &s.tank_name, &s.commander_name, &vp, &s.outcome]) {
+            c.print(*x, y, text);
+        }
+        y += 1;
+    }
+    c.print_ex(SCREEN_XM, SCREEN_HEIGHT - 3, Align::Center, &format!("[{}] Continue", hl("Enter")));
+    c
+}
