@@ -89,7 +89,7 @@ pub struct Game {
 }
 
 /// `CreateConsole`
-fn create_console(w: i32, h: i32, bc: Color, fc: Color, a: Align) -> Console {
+pub fn create_console(w: i32, h: i32, bc: Color, fc: Color, a: Align) -> Console {
     let mut c = Console::new(w, h);
     c.bg = bc;
     c.fg = fc;
@@ -101,26 +101,28 @@ fn create_console(w: i32, h: i32, bc: Color, fc: Color, a: Align) -> Console {
 
 impl Game {
     pub fn new(scr: Screen, rng: Rng) -> Self {
-        let mut root = create_console(SCREEN_WIDTH, SCREEN_HEIGHT, color::BLACK, color::WHITE, Align::Left);
+        let (w, h) = scr.size();
+        set_screen_size(w, h);
+        let mut root = create_console(sw(), sh(), color::BLACK, color::WHITE, Align::Left);
         root.set_color_control(COLCTRL_1, KEY_HIGHLIGHT_COLOR, color::BLACK);
         let mut overlay_con = create_console(MAP_CON_WIDTH, MAP_CON_HEIGHT, KEY_COLOR, color::BLACK, Align::Left);
         overlay_con.key = Some(KEY_COLOR);
-        let mut c_overlay_con = create_console(C_MAP_CON_WIDTH, C_MAP_CON_HEIGHT, KEY_COLOR, color::WHITE, Align::Left);
+        let mut c_overlay_con = create_console(C_MAP_MIN_WIDTH, C_MAP_CON_HEIGHT, KEY_COLOR, color::WHITE, Align::Left);
         c_overlay_con.key = Some(KEY_COLOR);
         Game {
             rng,
             scr,
             root,
-            con: create_console(SCREEN_WIDTH, SCREEN_HEIGHT, color::BLACK, color::WHITE, Align::Left),
+            con: create_console(sw(), sh(), color::BLACK, color::WHITE, Align::Left),
             map_con: create_console(MAP_CON_WIDTH, MAP_CON_HEIGHT, color::BLACK, color::BLACK, Align::Left),
             overlay_con,
             map_info_con: create_console(30, 8, color::BLACK, color::WHITE, Align::Center),
-            msg_con: create_console(MSG_CON_WIDTH, MSG_CON_HEIGHT, color::BLACK, color::WHITE, Align::Left),
+            msg_con: create_console(MSG_CON_WIDTH, msg_con_height(), color::BLACK, color::WHITE, Align::Left),
             tank_con: create_console(TANK_CON_WIDTH, TANK_CON_HEIGHT, color::BLACK, color::WHITE, Align::Left),
             date_con: create_console(DATE_CON_WIDTH, DATE_CON_HEIGHT, color::BLACK, color::WHITE, Align::Left),
             menu_con: create_console(MENU_CON_WIDTH, MENU_CON_HEIGHT, color::BLACK, color::WHITE, Align::Left),
             text_con: create_console(TEXT_CON_WIDTH, TEXT_CON_HEIGHT, color::BLACK, color::WHITE, Align::Left),
-            c_map_con: create_console(C_MAP_CON_WIDTH, C_MAP_CON_HEIGHT, color::BLACK, color::BLACK, Align::Left),
+            c_map_con: create_console(C_MAP_MIN_WIDTH, C_MAP_CON_HEIGHT, color::BLACK, color::BLACK, Align::Left),
             c_overlay_con,
             c_action_con: create_console(C_ACTION_CON_W, C_ACTION_CON_H, color::BLACK, color::WHITE, Align::Left),
             c_info_con: create_console(C_INFO_CON_W, C_INFO_CON_H, color::BLACK, color::WHITE, Align::Left),
@@ -184,6 +186,28 @@ impl Game {
     /// `sys_check_for_event`
     pub fn check_for_event(&mut self) {
         self.scr.check_for_event();
+        if let Some((w, h)) = self.scr.resized.take() {
+            self.resize(w, h);
+        }
+    }
+
+    /// The terminal changed size: lay the screen out again and redraw the
+    /// encounter or day map under way. A window open at the time redraws
+    /// itself at its next key.
+    pub fn resize(&mut self, w: i32, h: i32) {
+        set_screen_size(w, h);
+        log::info!("resize: terminal {w}x{h}, screen {}x{}", sw(), sh());
+        self.root = create_console(sw(), sh(), color::BLACK, color::WHITE, Align::Left);
+        self.root.set_color_control(COLCTRL_1, KEY_HIGHLIGHT_COLOR, color::BLACK);
+        self.con = create_console(sw(), sh(), color::BLACK, color::WHITE, Align::Left);
+        self.msg_con = create_console(MSG_CON_WIDTH, msg_con_height(), color::BLACK, color::WHITE, Align::Left);
+        if self.battle.is_some() {
+            self.update_msg_con();
+            self.render_encounter(false);
+        } else if self.campaign.day_in_progress && self.campaign.day_map.is_some() {
+            let p = self.campaign.day_map().player_node;
+            self.move_view_to(Some(p));
+        }
     }
 
     /// `Wait`: check for an event (so the terminal stays responsive) and
@@ -195,9 +219,9 @@ impl Game {
         }
     }
 
-    /// `console_blit(con, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0)`
+    /// `console_blit(con, 0, 0, sw(), sh(), 0, 0, 0)`
     pub fn blit_con(&mut self) {
-        Console::blit(&self.con, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, &mut self.root, 0, 0);
+        Console::blit(&self.con, 0, 0, sw(), sh(), &mut self.root, 0, 0);
     }
 
     /// Clear `con` and darken the screen behind a window, as the original
@@ -207,9 +231,9 @@ impl Game {
         self.root.darken(0.7);
     }
 
-    /// `console_blit(menu_con, ..., 0, MENU_CON_X, MENU_CON_Y)`
+    /// `console_blit(menu_con, ..., 0, menu_con_x(), menu_con_y())`
     pub fn blit_menu(&mut self) {
-        Console::blit(&self.menu_con, 0, 0, MENU_CON_WIDTH, MENU_CON_HEIGHT, &mut self.root, MENU_CON_X, MENU_CON_Y);
+        Console::blit(&self.menu_con, 0, 0, MENU_CON_WIDTH, MENU_CON_HEIGHT, &mut self.root, menu_con_x(), menu_con_y());
     }
 
     /// The character of the last key, `chr(key.c)`.
@@ -302,13 +326,13 @@ impl Game {
         self.darken_screen();
         let lines = wrap(message, 30, "");
         let h = lines.len() as i32 + 6;
-        let mut y = (SCREEN_HEIGHT - h) / 2 + 2;
+        let mut y = (sh() - h) / 2 + 2;
 
         self.root.fg = color::WHITE;
         self.root.bg = color::BLACK;
-        self.root.frame(SCREEN_XM - 17, y - 2, 34, h, true, true);
+        self.root.frame(sxm() - 17, y - 2, 34, h, true, true);
         for line in &lines {
-            self.root.print_ex(SCREEN_XM, y, Align::Center, line);
+            self.root.print_ex(sxm(), y, Align::Center, line);
             y += 1;
         }
         let text = if confirm {
@@ -316,7 +340,7 @@ impl Game {
         } else {
             format!("[{}] to continue", hl("Enter"))
         };
-        self.root.print_ex(SCREEN_XM, y + 1, Align::Center, &text);
+        self.root.print_ex(sxm(), y + 1, Align::Center, &text);
 
         let mut choice = false;
         loop {
@@ -377,15 +401,15 @@ impl Game {
         let lines = wrap(&text, 28, "");
         self.root.bg = GREYED_COLOR;
         self.root.fg = color::WHITE;
-        let min_x = if self.battle.is_some() { MAP_CON_X } else { C_MAP_CON_X };
+        let min_x = if self.battle.is_some() { map_con_x() } else { C_MAP_CON_X };
         let mut n = 1;
         for line in &lines {
-            if y + n >= SCREEN_HEIGHT {
+            if y + n >= sh() {
                 break;
             }
             let half = (line.chars().count() as i32 + 1) / 2;
-            if x + half >= SCREEN_WIDTH {
-                x = SCREEN_WIDTH - half;
+            if x + half >= sw() {
+                x = sw() - half;
             }
             if x - half <= min_x {
                 x = min_x + half;
@@ -472,10 +496,10 @@ impl Game {
         }
         let crewman = *self.rng.choice(&crew_list);
         let (x, y) = if self.battle.is_none() {
-            let n = self.campaign.player_node();
-            (n.x + C_MAP_CON_X, n.y + 3 - self.campaign.c_map_y)
+            let (x, y) = self.node_screen_pos(self.campaign.day_map().player_node);
+            (x, y - 1)
         } else {
-            (MAP_X0 + MAP_CON_X, MAP_Y0 + MAP_CON_Y)
+            (MAP_X0 + map_con_x(), MAP_Y0 + map_con_y())
         };
         self.show_label(x, y, message, Some(crewman));
         self.blit_con();
@@ -548,20 +572,20 @@ impl Game {
     /// Ctrl+R for a random entry.
     pub fn get_input(&mut self, prompt_text: &str, y: i32, max_length: usize, random_list: &[String], get_name: bool) -> String {
         let mut input_text = String::new();
-        let x = SCREEN_XM - max_length as i32 / 2;
-        let w = 84.min(SCREEN_WIDTH - 2);
-        self.con.frame(SCREEN_XM - w / 2, y - 5, w, 13, true, false);
+        let x = sxm() - max_length as i32 / 2;
+        let w = 84.min(sw() - 2);
+        self.con.frame(sxm() - w / 2, y - 5, w, 13, true, false);
         loop {
             let c = &mut self.con;
-            c.print_ex(SCREEN_XM, y - 3, Align::Center, prompt_text);
+            c.print_ex(sxm(), y - 3, Align::Center, prompt_text);
             c.bg = PLAYER_COLOR;
             c.rect(x, y, max_length as i32, 1, true);
-            c.print_ex(SCREEN_XM, y, Align::Center, &input_text);
+            c.print_ex(sxm(), y, Align::Center, &input_text);
             c.bg = color::BLACK;
             if !random_list.is_empty() || get_name {
-                c.print_ex(SCREEN_XM, y + 4, Align::Center, "Press Ctrl+R to randomly select an entry, replacing anything already inputted");
+                c.print_ex(sxm(), y + 4, Align::Center, "Press Ctrl+R to randomly select an entry, replacing anything already inputted");
             }
-            c.print_ex(SCREEN_XM, y + 5, Align::Center, &format!("[{}] to continue", hl("Enter")));
+            c.print_ex(sxm(), y + 5, Align::Center, &format!("[{}] to continue", hl("Enter")));
             self.blit_con();
             self.flush();
             if self.scr.is_headless() {
@@ -633,8 +657,8 @@ impl Game {
             let mut w = 3;
             while w < MENU_CON_WIDTH {
                 let h = (w / 3 - 3).max(3);
-                self.root.rect(SCREEN_XM - w / 2, SCREEN_YM - h / 2, w, h, false);
-                self.root.frame(SCREEN_XM - w / 2, SCREEN_YM - h / 2, w, h, true, false);
+                self.root.rect(sxm() - w / 2, sym() - h / 2, w, h, false);
+                self.root.frame(sxm() - w / 2, sym() - h / 2, w, h, true, false);
                 self.flush();
                 w += 6;
             }

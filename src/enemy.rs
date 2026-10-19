@@ -19,10 +19,10 @@ pub fn firing_sound(gun_type: &str) -> Option<&'static str> {
 }
 
 impl Game {
-    /// Where a unit is on the screen (`self.x+MAP_CON_X, self.y+MAP_CON_Y`).
+    /// Where a unit is on the screen (`self.x+map_con_x(), self.y+map_con_y()`).
     pub fn unit_screen_pos(&self, i: usize) -> (i32, i32) {
         let u = self.u(i);
-        (u.x + MAP_CON_X, u.y + MAP_CON_Y)
+        (u.x + map_con_x(), u.y + map_con_y())
     }
 
     /// `ShowLabel` at a unit.
@@ -33,7 +33,7 @@ impl Game {
 
     /// `ShowLabel` at the player's tank.
     pub fn player_label(&mut self, text: &str, crewman: Option<usize>) {
-        self.show_label(MAP_X0 + MAP_CON_X, MAP_Y0 + MAP_CON_Y, text, crewman);
+        self.show_label(MAP_X0 + map_con_x(), MAP_Y0 + map_con_y(), text, crewman);
     }
 
     /// `SetMorale`
@@ -584,7 +584,7 @@ impl Game {
             self.play_sound("german_mg_fire");
         }
         let (x, y) = self.unit_screen_pos(i);
-        self.mg_animation(x, y, MAP_X0 + MAP_CON_X, MAP_Y0 + MAP_CON_Y);
+        self.mg_animation(x, y, MAP_X0 + map_con_x(), MAP_Y0 + map_con_y());
         self.um(i).acquired_player = 0;
         self.um(i).fired = true;
 
@@ -639,7 +639,7 @@ impl Game {
             self.play_sound(s);
         }
         let (x, y) = self.unit_screen_pos(i);
-        self.main_gun_animation(x, y, MAP_X0 + MAP_CON_X, MAP_Y0 + MAP_CON_Y);
+        self.main_gun_animation(x, y, MAP_X0 + map_con_x(), MAP_Y0 + map_con_y());
         self.um(i).acquired_player = 0;
         self.um(i).fired = true;
 
@@ -712,13 +712,13 @@ impl Game {
             if let Some(s) = firing_sound(self.u(i).stats.str("main_gun")) {
                 self.play_sound(s);
             }
-            self.main_gun_animation(x, y, MAP_X0 + MAP_CON_X, MAP_Y0 + MAP_CON_Y);
+            self.main_gun_animation(x, y, MAP_X0 + map_con_x(), MAP_Y0 + map_con_y());
         } else if class == "LW" {
             self.play_sound("german_rifle_fire");
-            self.mg_animation(x, y, MAP_X0 + MAP_CON_X, MAP_Y0 + MAP_CON_Y);
+            self.mg_animation(x, y, MAP_X0 + map_con_x(), MAP_Y0 + map_con_y());
         } else if ["MG", "APC", "AC"].contains(&class.as_str()) {
             self.play_sound("german_mg_fire");
-            self.mg_animation(x, y, MAP_X0 + MAP_CON_X, MAP_Y0 + MAP_CON_Y);
+            self.mg_animation(x, y, MAP_X0 + map_con_x(), MAP_Y0 + map_con_y());
         }
         self.um(i).fired = true;
 

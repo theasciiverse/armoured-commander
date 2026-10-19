@@ -558,7 +558,7 @@ impl Game {
     fn generating_map_screen(&mut self) {
         self.con.bg = color::BLACK;
         self.con.clear();
-        self.con.print_ex(SCREEN_XM, SCREEN_HEIGHT / 2, Align::Center, "Generating Campaign Map...");
+        self.con.print_ex(sxm(), sh() / 2, Align::Center, "Generating Campaign Map...");
         self.blit_con();
         self.flush();
     }
@@ -1081,8 +1081,8 @@ impl Game {
         log::info!("day: {text}");
         self.con.bg = color::BLACK;
         self.con.clear();
-        self.con.print_ex(SCREEN_XM, SCREEN_HEIGHT / 2 - 2, Align::Center, &text);
-        self.con.print_ex(SCREEN_XM, SCREEN_HEIGHT / 2 + 2, Align::Center, "Press Enter to continue");
+        self.con.print_ex(sxm(), sh() / 2 - 2, Align::Center, &text);
+        self.con.print_ex(sxm(), sh() / 2 + 2, Align::Center, "Press Enter to continue");
         self.blit_con();
         self.flush();
         self.wait_for_enter();
@@ -1176,7 +1176,8 @@ impl Game {
             if kc == 'w' || vk == Vk::Up || kc == 's' || vk == Vk::Down || self.scr.mouse.wheel_up || self.scr.mouse.wheel_down {
                 let step = if kc == 'w' || vk == Vk::Up || self.scr.mouse.wheel_up { -10 } else { 10 };
                 self.campaign.c_map_y += step;
-                self.campaign.check_y_offset(C_MAP_CON_HEIGHT, C_MAP_CON_WINDOW_H);
+                let h = self.campaign.day_map().h;
+                self.campaign.check_y_offset(h, c_map_window_h());
                 self.update_c_info_con(mx, my);
                 self.render_campaign(false);
             }

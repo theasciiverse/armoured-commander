@@ -73,11 +73,13 @@ pub struct Screen {
     origin: (i32, i32),
     pub key: Key,
     pub mouse: Mouse,
+    /// The terminal's new size, if it was resized since last asked.
+    pub resized: Option<(i32, i32)>,
 }
 
 impl Screen {
     pub fn new(term: Option<ratatui::DefaultTerminal>) -> Self {
-        Screen { term, last_flush: Instant::now(), origin: (0, 0), key: Key::default(), mouse: Mouse::default() }
+        Screen { term, last_flush: Instant::now(), origin: (0, 0), key: Key::default(), mouse: Mouse::default(), resized: None }
     }
 
     /// No terminal: tests and headless runs.
@@ -145,6 +147,7 @@ impl Screen {
                 }
                 self.key = to_key(k.code, k.modifiers);
             }
+            Event::Resize(w, h) => self.resized = Some((w as i32, h as i32)),
             Event::Mouse(m) => {
                 self.mouse.cx = m.column as i32 - self.origin.0;
                 self.mouse.cy = m.row as i32 - self.origin.1;

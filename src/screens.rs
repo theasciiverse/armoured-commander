@@ -275,7 +275,7 @@ impl Game {
     /// `ShowTextWindow`: scroll through lines of text, starting at the
     /// end. The window shows 22 lines where the original showed 49.
     pub fn show_text_window(&mut self, title: &str, text_lines: &[String]) {
-        Console::blit(&self.root, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, &mut self.con, 0, 0);
+        Console::blit(&self.root, 0, 0, sw(), sh(), &mut self.con, 0, 0);
         let width = (TEXT_CON_WIDTH - 2) as usize;
         let mut lines: Vec<String> = Vec::new();
         for line in text_lines {
@@ -302,7 +302,7 @@ impl Game {
             for (n, line) in lines.iter().enumerate().skip(y1).take(y2 + 1 - y1) {
                 t.print(2, 3 + (n - y1) as i32, line);
             }
-            Console::blit(&self.text_con, 0, 0, TEXT_CON_WIDTH, TEXT_CON_HEIGHT, &mut self.root, TEXT_CON_X, TEXT_CON_Y);
+            Console::blit(&self.text_con, 0, 0, TEXT_CON_WIDTH, TEXT_CON_HEIGHT, &mut self.root, text_con_x(), text_con_y());
             self.flush();
             if self.scr.is_headless() {
                 break;
@@ -313,7 +313,7 @@ impl Game {
                 let can_scroll = lines.len() > shown;
                 match self.key_vk() {
                     Vk::Escape => {
-                        Console::blit(&self.con, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, &mut self.root, 0, 0);
+                        Console::blit(&self.con, 0, 0, sw(), sh(), &mut self.root, 0, 0);
                         self.flush();
                         return;
                     }
@@ -331,7 +331,7 @@ impl Game {
                 refresh = true;
             }
         }
-        Console::blit(&self.con, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, &mut self.root, 0, 0);
+        Console::blit(&self.con, 0, 0, sw(), sh(), &mut self.root, 0, 0);
         self.flush();
     }
 
@@ -389,13 +389,13 @@ impl Game {
                 } else if kc == 'k' {
                     self.con.clear();
                     let text = format!("Enter new nickname for {}", self.crew(selected).name);
-                    let nick = self.get_input(&text, SCREEN_YM - 2, NICKNAME_MAX_LEN, &[], false);
+                    let nick = self.get_input(&text, sym() - 2, NICKNAME_MAX_LEN, &[], false);
                     self.crewm(selected).nickname = nick;
                     refresh = true;
                 } else if kc == 'n' {
                     self.con.clear();
                     let text = format!("Enter new name for {}", self.crew(selected).name);
-                    let name = self.get_input(&text, SCREEN_YM - 2, NAME_MAX_LEN, &[], true);
+                    let name = self.get_input(&text, sym() - 2, NAME_MAX_LEN, &[], true);
                     self.crewm(selected).name = name;
                     refresh = true;
                 }

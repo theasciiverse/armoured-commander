@@ -123,6 +123,18 @@ The original screen is 149x61 cells of 8x12 pixels. Agreed with David
   calendar needs its 40-column text panel too, so the half-block map shows
   in a 59-column window that follows the day's location marker, rather
   than all 85 columns. For David to look at.
+- **Bigger terminals** (2026-10-19, David asked for more of the
+  terminal): the screen takes the terminal's size, at least 100x30, and
+  is laid out again when the terminal is resized. `layout.rs` has the
+  sizes that follow it as functions (`sw()`, `sh()`, `map_con_x()`,
+  `msg_con_height()`, ...). The encounter's message log runs the full
+  height and the hex map is centred to its right; the day map is
+  generated as wide as its window, 59 to 90 columns (always 82 tall), and
+  its window fills the right of the screen, scrolling sideways if the
+  terminal is later narrowed; the calendar shows the whole overview map,
+  as drawn (85x50) from 54 rows up, in half blocks below. Windows and
+  pop-ups stay 100x30, centred. Not yet: bigger hexes on a big screen
+  (the encounter map is still 59x29), and the main menu.
 - Other windows at 100x30: crew panels 19 wide (a rank too long for one,
   "Private First Class", shows short); the ammunition menu packed into 30
   rows. Alt switched the ammunition menu's direction of move in the

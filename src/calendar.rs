@@ -4,10 +4,10 @@
 //! happens between days (`CheckPlayerTank`, `CheckAwardsPromotions`), and
 //! its end (`CheckCommander`, `AddHighScore`, `RecordJournal`).
 //!
-//! The calendar screen at 100x30: the day's text in a 40-column panel on
-//! the left, and on the right a 59-column window onto the campaign's
-//! overview map, drawn in half blocks (85x50 cells become 85x25), which
-//! follows the day's location marker.
+//! The calendar screen: the day's text in a 40-column panel on
+//! the left, and the campaign's overview map on the right: as drawn (85x50)
+//! when the screen has room, otherwise in half blocks (85x25), in a window
+//! that follows the day's location marker if it is narrower than the map.
 
 use crate::bones;
 use crate::color::{self, Color};
@@ -21,7 +21,11 @@ use crate::ui::{Vk, wrap};
 /// Where the overview map's window sits on the calendar screen.
 const CAL_MAP_X: i32 = LEFT_W + 1;
 const CAL_MAP_Y: i32 = 2;
-const CAL_MAP_W: i32 = SCREEN_WIDTH - CAL_MAP_X;
+
+/// The space for the overview map, right of the text panel.
+fn cal_map_w() -> i32 {
+    sw() - CAL_MAP_X
+}
 
 /// The overview map in half blocks: each pair of rows becomes one row of
 /// `▀`, the upper cell's colour above the lower's. Text (place names, the
@@ -288,7 +292,7 @@ impl Game {
         self.con.bg = color::BLACK;
         self.con.clear();
         let names = defs::defs().tank_names.clone();
-        let mut name = self.get_input("Choose a name for your Sherman tank", SCREEN_YM - 2, 17, &names, false);
+        let mut name = self.get_input("Choose a name for your Sherman tank", sym() - 2, 17, &names, false);
         if name.is_empty() {
             name = self.rng.choice(&names).clone();
         }
@@ -299,7 +303,7 @@ impl Game {
     pub fn get_commander_name(&mut self, i: usize) {
         self.con.bg = color::BLACK;
         self.con.clear();
-        let name = self.get_input("Enter your name", SCREEN_YM - 2, NAME_MAX_LEN, &[], true);
+        let name = self.get_input("Enter your name", sym() - 2, NAME_MAX_LEN, &[], true);
         self.crewm(i).name = if name.is_empty() { self.generate_name() } else { name };
     }
 
@@ -546,13 +550,13 @@ impl Game {
         if self.campaign.animations && !self.scr.is_headless() {
             for c in (0..255).step_by(5) {
                 self.root.fg = Color(c as u8, c as u8, c as u8);
-                self.root.print_ex(SCREEN_XM, y, Align::Center, text);
+                self.root.print_ex(sxm(), y, Align::Center, text);
                 self.flush();
                 self.wait(2);
             }
         }
         self.root.fg = color::WHITE;
-        self.root.print_ex(SCREEN_XM, y, Align::Center, text);
+        self.root.print_ex(sxm(), y, Align::Center, text);
         self.flush();
     }
 
@@ -657,7 +661,9 @@ impl Game {
     }
 
     /// The calendar screen.
-    fn draw_calendar(&mut self, campaign_map: Option<&Console>) {
+    /// `campaign_map` is the overview map as drawn and in half blocks; the
+    /// full one is used when the screen has room for it.
+    fn draw_calendar(&mut self, campaign_map: Option<&(Console, Console)>) {
         let today = self.campaign.today().cloned().unwrap_or_default();
         self.con.bg = color::BLACK;
         self.con.clear();
@@ -665,9 +671,9 @@ impl Game {
         let camp = &self.campaign;
         let c = &mut self.con;
         c.fg = color::DARK_GREY;
-        c.hline(0, 1, SCREEN_WIDTH);
+        c.hline(0, 1, sw());
         c.fg = color::LIGHT_GREY;
-        c.frame(1, 2, LEFT_W - 1, SCREEN_HEIGHT - 3, false, false);
+        c.frame(1, 2, LEFT_W - 1, sh() - 3, false, false);
         let xm = LEFT_W / 2;
         c.hline(4, 4, LEFT_W - 7);
 
@@ -704,18 +710,25 @@ impl Game {
         }
         c.print_ex(xm, 26, Align::Center, &format!("Current VP Score: {}", camp.vp));
 
-        if let Some(map) = campaign_map {
+        if let Some((full, half)) = campaign_map {
+            let room = sh() - 4 - CAL_MAP_Y;
+            let (map, rows) = if full.h <= room && full.w <= cal_map_w() { (full, 1) } else { (half, 2) };
             let mx = today.map_x.as_deref().and_then(|s| s.trim().parse::<i32>().ok());
-            let my = today.map_y.as_deref().and_then(|s| s.trim().parse::<i32>().ok());
-            let ox = mx.map_or(0, |x| (x - CAL_MAP_W / 2).clamp(0, (map.w - CAL_MAP_W).max(0)));
-            Console::blit(map, ox, 0, CAL_MAP_W, map.h, c, CAL_MAP_X, CAL_MAP_Y);
+            let my = today.map_y.as_deref().and_then(|s| s.trim().parse::<i32>().ok()).map(|y| y / rows);
+            // the whole map, centred, when there is room for it; otherwise a
+            // window onto it that follows the marker
+            let w = map.w.min(cal_map_w());
+            let ox = mx.map_or(0, |x| (x - w / 2).clamp(0, map.w - w));
+            let left = CAL_MAP_X + (cal_map_w() - w) / 2;
+            let top = CAL_MAP_Y + (room - map.h).max(0) / 2;
+            Console::blit(map, ox, 0, w, map.h, c, left, top);
             if let (Some(mx), Some(my)) = (mx, my) {
                 c.fg = color::WHITE;
-                c.put_char(mx - ox + CAL_MAP_X, my / 2 + CAL_MAP_Y, b'@');
+                c.put_char(mx - ox + left, my + top, b'@');
             }
         }
 
-        let y = SCREEN_HEIGHT - 2;
+        let y = sh() - 2;
         let first = if camp.action_day {
             format!("[{}]egin combat day", hl("B"))
         } else {
@@ -771,7 +784,10 @@ impl Game {
         let campaign_map = (!self.campaign.map_file.is_empty())
             .then(|| crate::xp::by_name(&self.campaign.map_file))
             .flatten()
-            .map(|m| half_blocks(&m));
+            .map(|m| {
+                let half = half_blocks(&m);
+                (m, half)
+            });
 
         let mut steps = 0;
         loop {
@@ -962,7 +978,7 @@ mod tests {
             let def = defs::load_campaign(xml).unwrap();
             let Some(name) = def.map_file else { continue };
             let map = half_blocks(&crate::xp::by_name(&name).unwrap());
-            assert!(map.h <= SCREEN_HEIGHT - CAL_MAP_Y - 2, "{file}");
+            assert!(map.h <= MIN_HEIGHT - CAL_MAP_Y - 3, "{file}");
             for d in &def.days {
                 if let (Some(x), Some(y)) = (&d.map_x, &d.map_y) {
                     let (x, y): (i32, i32) = (x.trim().parse().unwrap(), y.trim().parse().unwrap());

@@ -135,8 +135,8 @@ impl Game {
     /// `GenerateCampaignMap`: a new map for the day, its roads and paint;
     /// false if the start and exit cannot be joined, to try again.
     pub fn generate_campaign_map(&mut self) -> bool {
-        let (w, h) = (C_MAP_CON_WIDTH, C_MAP_CON_HEIGHT);
-        let mut map = CampaignDayMap::default();
+        let (w, h) = (c_map_width_for_screen(), C_MAP_CON_HEIGHT);
+        let mut map = CampaignDayMap { w, h, ..Default::default() };
         self.campaign.selected_node = None;
 
         for _ in 0..300 {
@@ -476,12 +476,18 @@ impl Game {
         self.campaign.color_scheme = Some(name.to_string());
 
         let map = self.campaign.day_map.as_mut().expect("day map");
+        let (w, h) = (map.w, map.h);
+        if (self.c_map_con.w, self.c_map_con.h) != (w, h) {
+            self.c_map_con = create_console(w, h, color::BLACK, color::BLACK, Align::Left);
+            self.c_overlay_con = create_console(w, h, KEY_COLOR, color::WHITE, Align::Left);
+            self.c_overlay_con.key = Some(KEY_COLOR);
+        }
         let c = &mut self.c_map_con;
         c.bg = color::BLACK;
         c.clear();
 
-        for y in 0..C_MAP_CON_HEIGHT {
-            for x in 0..C_MAP_CON_WIDTH {
+        for y in 0..h {
+            for x in 0..w {
                 let p = &map.nodes[map.char_locations[&(x, y)]];
                 let mut fc = color::BLACK;
                 let mut ch = 0u8;
@@ -586,11 +592,11 @@ impl Game {
             let line = if n.top_edge {
                 get_line(n.x, n.y, n.x, 0)
             } else if n.bottom_edge {
-                get_line(n.x, n.y, n.x, C_MAP_CON_HEIGHT - 1)
+                get_line(n.x, n.y, n.x, h - 1)
             } else if n.left_edge {
                 get_line(n.x, n.y, 0, n.y)
             } else if n.right_edge {
-                get_line(n.x, n.y, C_MAP_CON_WIDTH - 1, n.y)
+                get_line(n.x, n.y, w - 1, n.y)
             } else {
                 continue;
             };
@@ -608,8 +614,8 @@ impl Game {
                 continue;
             }
             let mut locations = Vec::new();
-            for y in 0..C_MAP_CON_HEIGHT {
-                for x in 0..C_MAP_CON_WIDTH {
+            for y in 0..h {
+                for x in 0..w {
                     if map.char_locations[&(x, y)] == i {
                         locations.push((x, y));
                     }
@@ -784,13 +790,24 @@ impl Game {
         c.print(0, C_ACTION_CON_H - 1, &format!("Time until sunset: {h}:{m:02}"));
     }
 
+    /// The day map's view: its left edge on the screen, and how many
+    /// columns and rows of the map it shows. A map narrower than the
+    /// window is centred in it.
+    pub fn c_map_view(&self) -> (i32, i32, i32) {
+        let map = self.campaign.day_map();
+        let (w, h) = (map.w.min(c_map_window_w()), map.h.min(c_map_window_h()));
+        (C_MAP_CON_X + (c_map_window_w() - w) / 2, w, h)
+    }
+
     /// The area under the pointer on the map, if it is over the map.
     fn c_map_area_at(&self, mx: i32, my: i32) -> Option<usize> {
-        if mx < C_MAP_CON_X || mx >= C_MAP_CON_X + C_MAP_CON_WINDOW_W || my < C_MAP_CON_Y {
+        self.campaign.day_map.as_ref()?;
+        let (left, w, h) = self.c_map_view();
+        if mx < left || mx >= left + w || my < C_MAP_CON_Y || my >= C_MAP_CON_Y + h {
             return None;
         }
-        let map = self.campaign.day_map.as_ref()?;
-        map.char_locations.get(&(mx - C_MAP_CON_X, my - C_MAP_CON_Y + self.campaign.c_map_y)).copied()
+        let c = &self.campaign;
+        c.day_map().char_locations.get(&(mx - left + c.c_map_x, my - C_MAP_CON_Y + c.c_map_y)).copied()
     }
 
     /// `UpdateCInfoCon`: strike chances and the weather, and what is known
@@ -861,7 +878,8 @@ impl Game {
     /// Where an area's centre is on the screen.
     pub fn node_screen_pos(&self, i: usize) -> (i32, i32) {
         let n = &self.campaign.day_map().nodes[i];
-        (n.x + C_MAP_CON_X, n.y + C_MAP_CON_Y - self.campaign.c_map_y)
+        let (left, _, _) = self.c_map_view();
+        (n.x + left - self.campaign.c_map_x, n.y + C_MAP_CON_Y - self.campaign.c_map_y)
     }
 
     /// `RenderCampaign`: compose the campaign day screen and show it.
@@ -877,9 +895,10 @@ impl Game {
         self.con.clear();
         self.display_menu_bar();
         Console::blit(&self.date_con, 0, 0, DATE_CON_WIDTH, DATE_CON_HEIGHT, &mut self.con, DATE_CON_X, DATE_CON_Y);
-        let y0 = self.campaign.c_map_y;
-        Console::blit(&self.c_map_con, 0, y0, C_MAP_CON_WINDOW_W, C_MAP_CON_WINDOW_H, &mut self.con, C_MAP_CON_X, C_MAP_CON_Y);
-        Console::blit_fg(&self.c_overlay_con, 0, y0, C_MAP_CON_WINDOW_W, C_MAP_CON_WINDOW_H, &mut self.con, C_MAP_CON_X, C_MAP_CON_Y);
+        let (x0, y0) = (self.campaign.c_map_x, self.campaign.c_map_y);
+        let (left, w, h) = self.c_map_view();
+        Console::blit(&self.c_map_con, x0, y0, w, h, &mut self.con, left, C_MAP_CON_Y);
+        Console::blit_fg(&self.c_overlay_con, x0, y0, w, h, &mut self.con, left, C_MAP_CON_Y);
         Console::blit(&self.c_action_con, 0, 0, C_ACTION_CON_W, C_ACTION_CON_H, &mut self.con, C_ACTION_CON_X, C_ACTION_CON_Y);
         Console::blit(&self.c_info_con, 0, 0, C_INFO_CON_W, C_INFO_CON_H, &mut self.con, 1, C_INFO_CON_Y);
 
@@ -887,7 +906,7 @@ impl Game {
         c.fg = color::DARK_GREY;
         c.hline(1, C_ACTION_CON_Y - 1, LEFT_W - 1);
         c.hline(1, C_INFO_CON_Y - 1, LEFT_W - 1);
-        c.vline(LEFT_W, 1, SCREEN_HEIGHT - 1);
+        c.vline(LEFT_W, 1, sh() - 1);
         c.fg = color::WHITE;
 
         self.blit_con();
@@ -957,8 +976,9 @@ mod tests {
         while !g.generate_campaign_map() {}
         let first = g.c_map_con.clone();
         g.paint_campaign_map();
-        for y in 0..C_MAP_CON_HEIGHT {
-            for x in 0..C_MAP_CON_WIDTH {
+        let map = g.campaign.day_map();
+        for y in 0..map.h {
+            for x in 0..map.w {
                 assert_eq!(first.cell(x, y), g.c_map_con.cell(x, y));
             }
         }

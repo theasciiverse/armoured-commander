@@ -886,7 +886,7 @@ impl Game {
             _ => return,
         };
         let (tx, ty) = self.unit_screen_pos(t);
-        self.mg_animation(MAP_X0 + MAP_CON_X, MAP_Y0 + MAP_CON_Y, tx, ty);
+        self.mg_animation(MAP_X0 + map_con_x(), MAP_Y0 + map_con_y(), tx, ty);
         let (mg_fp, mg_rng) = match choice {
             "Co-ax" => {
                 self.tank.coax_mg_can_fire = false;
@@ -1119,7 +1119,7 @@ impl Game {
             self.play_sound(s);
         }
         let (tx, ty) = self.unit_screen_pos(t);
-        self.main_gun_animation(MAP_X0 + MAP_CON_X, MAP_Y0 + MAP_CON_Y, tx, ty);
+        self.main_gun_animation(MAP_X0 + map_con_x(), MAP_Y0 + map_con_y(), tx, ty);
 
         let area_fire = self.bt().area_fire;
         let ammo_load = self.tank.ammo_load.clone();
@@ -1359,11 +1359,11 @@ impl Game {
         if self.campaign.sounds {
             self.wait(400);
         }
-        let min_x = if self.battle.is_some() { MAP_CON_X } else { C_MAP_CON_X };
+        let min_x = if self.battle.is_some() { map_con_x() } else { C_MAP_CON_X };
         for _ in 0..10 {
             let x1 = x + self.rng.int(-7, 7);
             let y1 = y + self.rng.int(-4, 4);
-            if x1 < min_x || x1 >= SCREEN_WIDTH - 1 || y1 < 1 || y1 >= SCREEN_HEIGHT {
+            if x1 < min_x || x1 >= sw() - 1 || y1 < 1 || y1 >= sh() {
                 continue;
             }
             let Some(mut cell) = self.root.cell(x1, y1) else { continue };
@@ -1396,7 +1396,7 @@ impl Game {
         let d = defs::defs();
         let frames = if hit_result == "he_hit" { &d.he_hit_animation } else { &d.ap_hit_animation };
         let (ux, uy) = (self.u(target).x, self.u(target).y);
-        let (x, y) = (MAP_CON_X + ux, MAP_CON_Y + uy);
+        let (x, y) = (map_con_x() + ux, map_con_y() + uy);
         let bg = self.map_con.char_bg(ux, uy);
         self.root.set_char_bg(x, y, bg);
         for f in frames {
@@ -1889,7 +1889,7 @@ impl Game {
         } else if roll <= ranges[4] {
             self.popup("Enemy artillery fire rains down on your position.");
             self.play_sound("arty_firing");
-            self.arty_strike_animation(MAP_X0 + MAP_CON_X, MAP_Y0 + MAP_CON_Y);
+            self.arty_strike_animation(MAP_X0 + map_con_x(), MAP_Y0 + map_con_y());
             let result = self.roll_1d10();
             let num_ko = if result <= 6 {
                 1
@@ -2008,10 +2008,10 @@ impl Game {
 
     /// `UnitInfo`: right-click on a unit for its description.
     pub fn unit_info(&mut self, mx: i32, my: i32) {
-        if mx < MAP_CON_X || my < MAP_CON_Y || my >= MAP_CON_Y + MAP_CON_HEIGHT {
+        if mx < map_con_x() || my < map_con_y() || my >= map_con_y() + MAP_CON_HEIGHT {
             return;
         }
-        let (mx, my) = (mx - MAP_CON_X, my - MAP_CON_Y);
+        let (mx, my) = (mx - map_con_x(), my - map_con_y());
         let Some(i) = self.bt().enemy_units.iter().position(|u| u.alive && u.x == mx && u.y == my) else { return };
         let u = self.u(i).clone();
         if u.is_class(&["TANK", "SPG", "AT_GUN"]) && !u.identified {

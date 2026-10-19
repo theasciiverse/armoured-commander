@@ -136,6 +136,19 @@ pub struct CampaignDayMap {
     #[serde(with = "cell_map")]
     pub char_locations: HashMap<(i32, i32), usize>,
     pub player_node: usize,
+    /// Its size; saves from before maps varied were 59x82.
+    #[serde(default = "old_map_w")]
+    pub w: i32,
+    #[serde(default = "old_map_h")]
+    pub h: i32,
+}
+
+fn old_map_w() -> i32 {
+    59
+}
+
+fn old_map_h() -> i32 {
+    82
 }
 
 /// `SkillRecord`
@@ -264,6 +277,9 @@ pub struct Campaign {
     pub hour: i32,
     pub minute: i32,
     pub c_map_y: i32,
+    /// Across, when the day map is wider than its window.
+    #[serde(default)]
+    pub c_map_x: i32,
     pub resupply: bool,
     pub input_mode: String,
     pub selected_node: Option<usize>,
@@ -328,6 +344,7 @@ impl Campaign {
             hour: 0,
             minute: 0,
             c_map_y: 0,
+            c_map_x: 0,
             resupply: false,
             input_mode: "None".into(),
             selected_node: None,
@@ -495,6 +512,11 @@ impl Campaign {
         } else if self.c_map_y > map_h - window_h {
             self.c_map_y = (map_h - window_h).max(0);
         }
+    }
+
+    /// The same across, for a map wider than its window.
+    pub fn check_x_offset(&mut self, map_w: i32, window_w: i32) {
+        self.c_map_x = self.c_map_x.clamp(0, (map_w - window_w).max(0));
     }
 }
 

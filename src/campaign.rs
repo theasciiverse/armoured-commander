@@ -623,15 +623,24 @@ impl Game {
     /// area is well inside the window.
     pub fn move_view_to(&mut self, node: Option<usize>) {
         let Some(i) = node else { return };
-        let y = self.campaign.day_map().nodes[i].y;
+        let map = self.campaign.day_map();
+        let (x, y, map_w, map_h) = (map.nodes[i].x, map.nodes[i].y, map.w, map.h);
         let c = &mut self.campaign;
         while c.c_map_y > y - 10 {
             c.c_map_y -= 10;
         }
-        while c.c_map_y < y - C_MAP_CON_WINDOW_H + 10 {
+        while c.c_map_y < y - c_map_window_h() + 10 {
             c.c_map_y += 10;
         }
-        c.check_y_offset(C_MAP_CON_HEIGHT, C_MAP_CON_WINDOW_H);
+        c.check_y_offset(map_h, c_map_window_h());
+        // the same across, when the map is wider than the window
+        while c.c_map_x > x - 10 {
+            c.c_map_x -= 10;
+        }
+        while c.c_map_x < x - c_map_window_w() + 10 {
+            c.c_map_x += 10;
+        }
+        c.check_x_offset(map_w, c_map_window_w());
         self.render_campaign(false);
     }
 

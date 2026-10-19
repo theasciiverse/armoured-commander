@@ -358,10 +358,10 @@ impl Game {
     /// panel under the map; returns its lines.
     pub fn map_info_lines(&self, mx: i32, my: i32) -> Vec<(String, Color)> {
         let mut lines = Vec::new();
-        if mx < MAP_CON_X || my < MAP_CON_Y || my >= MAP_CON_Y + MAP_CON_HEIGHT {
+        if mx < map_con_x() || my < map_con_y() || my >= map_con_y() + MAP_CON_HEIGHT {
             return lines;
         }
-        let (mx, my) = (mx - MAP_CON_X, my - MAP_CON_Y);
+        let (mx, my) = (mx - map_con_x(), my - map_con_y());
         if mx == MAP_X0 && my == MAP_Y0 {
             lines.push((format!("M4 Sherman \"{}\"", self.tank.name), color::WHITE));
             return lines;
@@ -799,12 +799,12 @@ impl Game {
         Console::blit(&self.date_con, 0, 0, DATE_CON_WIDTH, DATE_CON_HEIGHT, &mut self.con, DATE_CON_X, DATE_CON_Y);
         Console::blit(&self.tank_con, 0, 0, TANK_CON_WIDTH, TANK_CON_HEIGHT, &mut self.con, TANK_CON_X, TANK_CON_Y);
         self.update_msg_con();
-        Console::blit(&self.msg_con, 0, 0, MSG_CON_WIDTH, MSG_CON_HEIGHT, &mut self.con, MSG_CON_X, MSG_CON_Y);
-        Console::blit(&self.map_con, 0, 0, MAP_CON_WIDTH, MAP_CON_HEIGHT, &mut self.con, MAP_CON_X, MAP_CON_Y);
-        Console::blit(&self.overlay_con, 0, 0, MAP_CON_WIDTH, MAP_CON_HEIGHT, &mut self.con, MAP_CON_X, MAP_CON_Y);
+        Console::blit(&self.msg_con, 0, 0, MSG_CON_WIDTH, msg_con_height(), &mut self.con, MSG_CON_X, MSG_CON_Y);
+        Console::blit(&self.map_con, 0, 0, MAP_CON_WIDTH, MAP_CON_HEIGHT, &mut self.con, map_con_x(), map_con_y());
+        Console::blit(&self.overlay_con, 0, 0, MAP_CON_WIDTH, MAP_CON_HEIGHT, &mut self.con, map_con_x(), map_con_y());
 
         self.con.fg = color::DARK_GREY;
-        self.con.vline(LEFT_W, 1, SCREEN_HEIGHT - 1);
+        self.con.vline(LEFT_W, 1, sh() - 1);
         self.con.fg = color::WHITE;
 
         // what is under the pointer, beside it
@@ -814,10 +814,10 @@ impl Game {
             let w = lines.iter().map(|(l, _)| l.chars().count() as i32).max().unwrap_or(0) + 2;
             let h = lines.len() as i32 + 2;
             let mut x = mx + 2;
-            if x + w > SCREEN_WIDTH {
+            if x + w > sw() {
                 x = mx - w - 1;
             }
-            let y = (my - h / 2).clamp(1, SCREEN_HEIGHT - h);
+            let y = (my - h / 2).clamp(1, sh() - h);
             let c = &mut self.con;
             c.fg = color::LIGHT_GREY;
             c.bg = color::BLACK;

@@ -5,7 +5,10 @@ use crate::color;
 use crate::console::{Align, COLCTRL_1, Console};
 use crate::defs;
 use crate::game::{KEY_HIGHLIGHT_COLOR, MENU_TITLE_COLOR, hl};
-use crate::layout::{SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_XM};
+/// The credits and high scores are main menu screens, 100x30.
+const SCREEN_WIDTH: i32 = crate::layout::MIN_WIDTH;
+const SCREEN_HEIGHT: i32 = crate::layout::MIN_HEIGHT;
+const SCREEN_XM: i32 = SCREEN_WIDTH / 2;
 use std::time::{Duration, Instant};
 
 const STEP: Duration = Duration::from_millis(750);

@@ -794,19 +794,19 @@ impl Game {
         }
         let (x, y) = match &self.campaign.day_map {
             Some(m) => {
-                let n = &m.nodes[m.player_node];
-                (n.x + C_MAP_CON_X, (n.y + 1 - self.campaign.c_map_y).clamp(1, SCREEN_HEIGHT - 1))
+                let (x, y) = self.node_screen_pos(m.player_node);
+                (x, y.clamp(1, sh() - 1))
             }
-            None => (SCREEN_XM, SCREEN_YM),
+            None => (sxm(), sym()),
         };
         let screen = self.root.clone();
         let mut w = 3;
-        while w < SCREEN_WIDTH {
+        while w < sw() {
             crate::console::Console::blit(&screen, x - w, y - w / 2, w * 2, w, &mut self.root, x - w, y - w / 2);
             self.root.fg = color::WHITE;
             self.root.frame(x - w, y - w / 2, w * 2, w, false, false);
             self.flush();
-            if x - w < 0 && x + w >= SCREEN_WIDTH {
+            if x - w < 0 && x + w >= sw() {
                 break;
             }
             w += 2;
