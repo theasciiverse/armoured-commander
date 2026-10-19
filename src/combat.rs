@@ -140,9 +140,10 @@ impl Game {
         } else {
             (true, self.tank.moving, self.tank.stats.str("target_size").to_string())
         };
-        // the player's gunner's Target Tracking is rolled even when the
-        // enemy is firing; kept
-        if target_vehicle && target_moving && !self.pos_skill_check("Gunner", "Target Tracking") {
+        // the player's gunner's Target Tracking cancels the penalty; the
+        // original rolled it when the enemy fired at the player too, so it
+        // helped them hit; only the player's fire now (David, 2026-10-19)
+        if target_vehicle && target_moving && !(player_fires && self.pos_skill_check("Gunner", "Target Tracking")) {
             drm.push(("Vehicle target is moving".into(), 2));
         }
         if target_vehicle {
@@ -1009,8 +1010,9 @@ impl Game {
             } else {
                 roll -= 1;
             }
-            // the original's "6 and 2" looks meant as double sixes; kept
-            if (d1 == 6 && d2 == 2 && dt.break_score != 0) || roll >= dt.break_score {
+            // double sixes break the part; the original's "6 and 2" was
+            // meant as that (fixed, David, 2026-10-19)
+            if (d1 == 6 && d2 == 6 && dt.break_score != 0) || roll >= dt.break_score {
                 self.popup(&format!("The repair attempt failed! {}.", dt.break_result));
                 self.tank.damage_list.retain(|d| *d != damage);
                 self.tank.damage_list.push(dt.break_result.clone());

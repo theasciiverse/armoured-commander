@@ -290,8 +290,12 @@ impl Game {
             return false;
         }
 
-        // each area's resistance. The roads are built after this, as in the
-        // original, so their modifiers never apply.
+        // the roads, then each area's resistance. The original built the
+        // roads after the resistance rolls, so their modifiers never
+        // applied; fixed (David, 2026-10-19).
+        let seed = self.rng.int(0, 2_147_483_647) as u64;
+        self.campaign.day_map_mut().seed = seed;
+        self.generate_roads();
         for i in 0..self.campaign.day_map().nodes.len() {
             if self.campaign.day_map().blocked_nodes.contains(&i) {
                 continue;
@@ -341,9 +345,6 @@ impl Game {
             }
         }
 
-        let seed = self.rng.int(0, 2_147_483_647) as u64;
-        self.campaign.day_map_mut().seed = seed;
-        self.generate_roads();
         self.paint_campaign_map();
         true
     }

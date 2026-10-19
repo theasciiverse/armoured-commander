@@ -1375,9 +1375,7 @@ impl Game {
                         _ => 2,
                     }
                 };
-                // the original's date modifiers never take effect (they
-                // change a copy); kept, see CLAUDE.md
-                let mut activation_list = self.campaign.mission_activations[column].clone();
+                let mut activation_list = self.campaign.activation_list(column);
                 let total: i32 = activation_list.iter().map(|(_, v)| v).sum();
                 self.shuffle(&mut activation_list);
                 let mut roll = self.rng.int(0, total);
@@ -1489,11 +1487,13 @@ impl Game {
                 if self.tank.stats.str("vehicle_type") == "Sherman VC" {
                     result += 3;
                 }
-                // the original's AT gun row tests for 'AT', never matching
-                // 'AT_GUN', so AT guns use the last row; kept
+                // the original's AT gun row tested for 'AT', never matching
+                // 'AT_GUN', so AT guns used the last row; fixed (David,
+                // 2026-10-19)
                 let rng = match unit_class.as_str() {
                     "LW" => if result <= 6 { 0 } else { 1 },
                     "MG" => if result <= 3 { 0 } else if result <= 8 { 1 } else { 2 },
+                    "AT_GUN" => if result <= 2 { 0 } else if result <= 7 { 1 } else { 2 },
                     "SPG" => if result <= 2 { 0 } else if result <= 6 { 1 } else { 2 },
                     _ => if result <= 3 { 0 } else if result <= 7 { 1 } else { 2 },
                 };

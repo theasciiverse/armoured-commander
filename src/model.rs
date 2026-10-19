@@ -385,6 +385,24 @@ impl Campaign {
         self.days = def.days.clone();
     }
 
+    /// The chance of each unit class turning up, for a mission column
+    /// (advance, battle, counterattack), with the campaign's date
+    /// modifiers (Patton's Best: more infantry and machine guns, fewer
+    /// tanks and anti-tank guns, from 1945). The original added them to a
+    /// copy, so they never took effect; fixed (David, 2026-10-19).
+    pub fn activation_list(&self, column: usize) -> Vec<(String, i32)> {
+        let mut list = self.mission_activations[column].clone();
+        for m in &self.activation_modifiers {
+            if [m.year, m.month, m.date] > self.current_date {
+                continue;
+            }
+            if let Some((_, v)) = list.iter_mut().find(|(k, _)| *k == m.class_name) {
+                *v = (*v + m.r#mod).max(0);
+            }
+        }
+        list
+    }
+
     /// `GetToday`: the current date's entry in the calendar.
     pub fn today(&self) -> Option<&defs::Day> {
         self.today_index().map(|n| &self.days[n])
@@ -1062,6 +1080,22 @@ mod tests {
         assert_eq!(get_sector_distance(0, 5), 1);
         assert_eq!(get_sector_distance(4, 0), 2);
         assert_eq!(get_sector_distance(1, 4), 3);
+    }
+
+    #[test]
+    fn date_modifiers_apply_from_their_date() {
+        let def = crate::defs::load_campaign(crate::defs::CAMPAIGN_FILES[1].1).unwrap();
+        let mut c = Campaign::new();
+        c.load_info(&def);
+        let chance = |c: &Campaign, class: &str| c.activation_list(0).iter().find(|(k, _)| k == class).unwrap().1;
+        c.current_date = [1945, 1, 31];
+        let (lw, tank, mg) = (chance(&c, "LW"), chance(&c, "TANK"), chance(&c, "MG"));
+        c.current_date = [1945, 2, 1];
+        assert_eq!(chance(&c, "LW"), lw + 10);
+        assert_eq!(chance(&c, "TANK"), (tank - 5).max(0));
+        assert_eq!(chance(&c, "MG"), mg);
+        c.current_date = [1945, 3, 15];
+        assert_eq!(chance(&c, "MG"), mg + 10);
     }
 
     #[test]

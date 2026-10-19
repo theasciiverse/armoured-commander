@@ -191,23 +191,23 @@ counterattack, Tab listed a front-line area once for each enemy area
 beside it, and could stick on it. `CheckCommander` cannot end a campaign
 twice. The display settings carry over to a new campaign.
 
-Fixed, but it touches the odds, so for David to confirm: the original
-builds roads inside `PaintCampaignMap`, which runs twice for every new
-map, so most maps got a second network of roads over the first (and
-movement along roads is quicker). Roads are built once here.
+Decided by David (2026-10-19): fixed, though they change the odds:
+roads are built once per map (the original built a second network over
+the first) and before area resistance is rolled, so the road bonus (+2
+improved, +1 dirt) applies; the campaign files' date-based activation
+modifiers apply (Patton's Best: more infantry and machine guns, fewer
+tanks and anti-tank guns from 1945; the original changed a copy); AT
+guns use their own range table (it tested `'AT'` not `'AT_GUN'`); turret
+penetrations wound the turret crew as intended (it tested `'turret'` in
+lower case); the gunner's Target Tracking only helps the player's own
+fire (it was rolled when the enemy fired at the player too); a repair
+breaks the part on double six (the original's "6 and 2"); an ambush that
+knocks out the tank counts that encounter's VP.
 
-Kept, to decide (campaign): area resistance is rolled before the roads
-exist, so its road modifiers (+2 improved, +1 dirt) never apply.
-
-Kept, to decide: the campaign files' date-based activation modifiers
-never apply (`v += mod['mod']` changes a copy); the spawn-range table
-tests `'AT'` not `'AT_GUN'`; crew wound modifiers test for `'turret'` in
-lower case, so turret hits count as hull hits; the player's gunner's
-Target Tracking is rolled when an enemy fires too; `AttackInfantry`
-returns nothing after a kill and `AttackPlayer` nothing after a
-panzerfaust, so the unit rolls another action; a repair "6 and 2" (likely
-meant double six) breaks the part; an ambush that knocks out the tank
-counts no VP for that encounter.
+Kept as the original, to look at again after play (David, 2026-10-19):
+`AttackInfantry` returns nothing after a kill and `AttackPlayer` nothing
+after a panzerfaust, so the unit rolls another action. Fixing it makes
+battles noticeably easier.
 
 ## Tests
 
@@ -228,7 +228,7 @@ about 10 seconds; debug takes about two minutes.
 2. Done: terminal layout agreed (see Screen size).
 3. Done: the data, the encounter, the campaign, the info windows.
 4. Done: saves, the main menu with its tombstone, bigger hexes, sound.
-   Next: David's rule decisions (above), release builds, then
+   David's rule decisions made (above). Next: release builds, then
    Armoured Commander II. The bones file already keeps high scores, the graveyard and
    tutorial flags; journals are written to the data folder at the end of
    a campaign.

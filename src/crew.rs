@@ -463,9 +463,10 @@ impl Game {
 
         if let (Some(loc), Some(sector)) = (hit_location, sector) {
             let (mut d, mut a, mut g, mut l, mut c) = (0, 0, 0, 0, 0);
-            // the original tests for 'turret' in lower case, which never
-            // matches its 'Turret', so every hit counts as a hull hit; kept
-            if loc == "turret" {
+            // the original tested for 'turret' in lower case, which never
+            // matched its 'Turret', so every hit counted as a hull hit;
+            // fixed (David, 2026-10-19)
+            if loc == "Turret" {
                 d -= 2;
                 a -= 2;
                 if sector == 5 || sector == 0 {

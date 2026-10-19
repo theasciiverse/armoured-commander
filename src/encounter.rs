@@ -743,10 +743,12 @@ impl Game {
                                 if !self.campaign.over {
                                     self.encounter_menu();
                                 }
-                                // the original returns with the battle still
-                                // set (its pop-ups then redraw the encounter
-                                // over the campaign) and never counts this
-                                // encounter's VP; the VP is kept as it was
+                                // the original returned with the battle still
+                                // set (its pop-ups then redrew the encounter
+                                // over the campaign) and never counted this
+                                // encounter's VP; both fixed (David,
+                                // 2026-10-19)
+                                self.campaign.day_vp += self.bt().vp_total;
                                 self.battle = None;
                                 return;
                             }
