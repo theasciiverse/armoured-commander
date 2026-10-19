@@ -27,32 +27,69 @@ fn cal_map_w() -> i32 {
     sw() - CAL_MAP_X
 }
 
-/// The overview map in half blocks: each pair of rows becomes one row of
-/// `▀`, the upper cell's colour above the lower's. Text (place names, the
-/// title) is kept, on the colour of its own row.
-fn half_blocks(src: &Console) -> Console {
-    let h = (src.h + 1) / 2;
-    let mut out = Console::new(src.w, h);
+/// The overview map drawn in half blocks at `cols` x `rows` cells: two
+/// pixels a cell, `▀` with the upper colour over the lower, each sampled
+/// from the nearest cell of the map. At the map's own width and half its
+/// height, each pair of rows becomes one. Text (place names, the title)
+/// is kept at its size, each run of it (the gaps between words included)
+/// where its first letter falls.
+fn scaled_blocks(src: &Console, cols: i32, rows: i32) -> Console {
+    let mut out = Console::new(cols, rows);
     let colour = |x: i32, y: i32| match src.cell(x, y) {
         Some(c) if (219..=223).contains(&c.ch) => c.fg,
         Some(c) => c.bg,
         None => color::BLACK,
     };
-    for y in 0..h {
-        for x in 0..src.w {
-            let (top, bottom) = (colour(x, 2 * y), colour(x, 2 * y + 1));
-            out.put_char_ex(x, y, 223, top, bottom);
-            for (sy, bg) in [(2 * y, top), (2 * y + 1, bottom)] {
-                if let Some(c) = src.cell(x, sy) {
-                    if !matches!(c.ch, 0 | 32 | 219..=223) {
-                        out.put_char_ex(x, y, c.ch, c.fg, bg);
-                        break;
-                    }
+    let (px_h, src_y) = (rows * 2, |py: i32| py * src.h / (rows * 2));
+    for y in 0..rows {
+        for x in 0..cols {
+            let sx = x * src.w / cols;
+            out.put_char_ex(x, y, 223, colour(sx, src_y(2 * y)), colour(sx, src_y((2 * y + 1).min(px_h - 1))));
+        }
+    }
+    let is_text = |ch: u8| !matches!(ch, 0 | 32 | 219..=223);
+    for sy in 0..src.h {
+        let mut sx = 0;
+        while sx < src.w {
+            if !src.cell(sx, sy).is_some_and(|c| is_text(c.ch)) {
+                sx += 1;
+                continue;
+            }
+            let (x0, y0) = (sx * cols / src.w, sy * px_h / src.h / 2);
+            // a run goes on over a one-cell gap between words, which the
+            // art fills in with a block ("Patton's Best")
+            let text_at = |x: i32| src.cell(x, sy).is_some_and(|c| is_text(c.ch));
+            let mut n = 0;
+            while text_at(sx) || (sx + 1 < src.w && text_at(sx + 1)) {
+                let c = src.cell(sx, sy).expect("in the map");
+                if is_text(c.ch) {
+                    out.put_char_ex(x0 + n, y0, c.ch, c.fg, c.bg);
+                } else {
+                    out.put_char_ex(x0 + n, y0, b' ', c.fg, colour(sx, sy));
                 }
+                sx += 1;
+                n += 1;
             }
         }
     }
     out
+}
+
+/// How big to draw the overview map on the calendar: as big as the space
+/// allows, in the proportions of the original's 8x12-pixel cells (a half
+/// block is about square); never smaller than half blocks at the map's own
+/// width, which shows in a window if the screen is narrower.
+fn cal_map_size(src: &Console, screen_w: i32, screen_h: i32) -> (i32, i32) {
+    let room_rows = screen_h - 4 - CAL_MAP_Y;
+    let room_w = screen_w - CAL_MAP_X - 2;
+    let aspect = (src.w * 8) as f64 / (src.h * 12) as f64;
+    let mut px_h = room_rows * 2;
+    let mut w = (px_h as f64 * aspect).round() as i32;
+    if w > room_w {
+        w = room_w;
+        px_h = (w as f64 / aspect).round() as i32;
+    }
+    if w <= src.w { (src.w, (src.h + 1) / 2) } else { (w, (px_h + 1) / 2) }
 }
 
 /// The clock's date and time (UTC; the original used local time).
@@ -661,9 +698,7 @@ impl Game {
     }
 
     /// The calendar screen.
-    /// `campaign_map` is the overview map as drawn and in half blocks; the
-    /// full one is used when the screen has room for it.
-    fn draw_calendar(&mut self, campaign_map: Option<&(Console, Console)>) {
+    fn draw_calendar(&mut self, campaign_map: Option<&Console>) {
         let today = self.campaign.today().cloned().unwrap_or_default();
         self.con.bg = color::BLACK;
         self.con.clear();
@@ -710,11 +745,12 @@ impl Game {
         }
         c.print_ex(xm, 26, Align::Center, &format!("Current VP Score: {}", camp.vp));
 
-        if let Some((full, half)) = campaign_map {
+        if let Some(src) = campaign_map {
             let room = sh() - 4 - CAL_MAP_Y;
-            let (map, rows) = if full.h <= room && full.w <= cal_map_w() { (full, 1) } else { (half, 2) };
-            let mx = today.map_x.as_deref().and_then(|s| s.trim().parse::<i32>().ok());
-            let my = today.map_y.as_deref().and_then(|s| s.trim().parse::<i32>().ok()).map(|y| y / rows);
+            let (cols, rows) = cal_map_size(src, sw(), sh());
+            let map = &scaled_blocks(src, cols, rows);
+            let mx = today.map_x.as_deref().and_then(|s| s.trim().parse::<i32>().ok()).map(|x| x * cols / src.w);
+            let my = today.map_y.as_deref().and_then(|s| s.trim().parse::<i32>().ok()).map(|y| y * rows * 2 / src.h / 2);
             // the whole map, centred, when there is room for it; otherwise a
             // window onto it that follows the marker
             let w = map.w.min(cal_map_w());
@@ -783,11 +819,7 @@ impl Game {
     fn calendar_loop(&mut self) {
         let campaign_map = (!self.campaign.map_file.is_empty())
             .then(|| crate::xp::by_name(&self.campaign.map_file))
-            .flatten()
-            .map(|m| {
-                let half = half_blocks(&m);
-                (m, half)
-            });
+            .flatten();
 
         let mut steps = 0;
         loop {
@@ -964,12 +996,25 @@ mod tests {
         src.put_char_ex(0, 1, 219, color::BLUE, color::BLACK);
         src.put_char_ex(1, 2, b'P', color::WHITE, color::GREY);
         src.put_char_ex(1, 3, 219, color::RED, color::BLACK);
-        let out = half_blocks(&src);
+        let out = scaled_blocks(&src, 2, 2);
         assert_eq!((out.w, out.h), (2, 2));
         let c = out.cell(0, 0).unwrap();
         assert_eq!((c.ch, c.fg, c.bg), (223, color::RED, color::BLUE));
         let c = out.cell(1, 1).unwrap();
         assert_eq!((c.ch, c.bg), (b'P', color::GREY));
+        // twice the size: each cell becomes two across and two pixels down
+        let big = scaled_blocks(&src, 4, 4);
+        let c = big.cell(1, 0).unwrap();
+        assert_eq!((c.fg, c.bg), (color::RED, color::RED));
+        assert_eq!(big.cell(2, 2).unwrap().ch, b'P');
+    }
+
+    #[test]
+    fn the_overview_map_grows_with_the_screen() {
+        let src = crate::xp::by_name("pattons_best_map.xp").unwrap();
+        assert_eq!(cal_map_size(&src, 100, 30), (85, 25));
+        let (w, h) = cal_map_size(&src, 174, 49);
+        assert!(w > 85 && h > 25 && h <= 49 - 4 - CAL_MAP_Y, "{w}x{h}");
     }
 
     #[test]
@@ -977,7 +1022,8 @@ mod tests {
         for (file, xml) in defs::CAMPAIGN_FILES {
             let def = defs::load_campaign(xml).unwrap();
             let Some(name) = def.map_file else { continue };
-            let map = half_blocks(&crate::xp::by_name(&name).unwrap());
+            let src = crate::xp::by_name(&name).unwrap();
+            let map = scaled_blocks(&src, src.w, (src.h + 1) / 2);
             assert!(map.h <= MIN_HEIGHT - CAL_MAP_Y - 3, "{file}");
             for d in &def.days {
                 if let (Some(x), Some(y)) = (&d.map_x, &d.map_y) {

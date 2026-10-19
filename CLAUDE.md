@@ -131,8 +131,10 @@ The original screen is 149x61 cells of 8x12 pixels. Agreed with David
   height and the hex map is centred to its right; the day map is
   generated as wide as its window, 59 to 90 columns (always 82 tall), and
   its window fills the right of the screen, scrolling sideways if the
-  terminal is later narrowed; the calendar shows the whole overview map,
-  as drawn (85x50) from 54 rows up, in half blocks below. Windows and
+  terminal is later narrowed; the calendar's overview map is scaled to
+  fill its space, in half blocks, in the proportions of the original's
+  8x12-pixel cells, with the place names at their scaled places (at
+  100x30 it stays 85x25, in a window that follows the marker). Windows and
   pop-ups stay 100x30, centred. Not yet: bigger hexes on a big screen
   (the encounter map is still 59x29), and the main menu.
 - Other windows at 100x30: crew panels 19 wide (a rank too long for one,
