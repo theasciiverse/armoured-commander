@@ -357,6 +357,21 @@ impl Campaign {
         self.days = def.days.clone();
     }
 
+    /// `GetToday`: the current date's entry in the calendar.
+    pub fn today(&self) -> Option<&defs::Day> {
+        self.today_index().map(|n| &self.days[n])
+    }
+
+    pub fn today_index(&self) -> Option<usize> {
+        self.days.iter().position(|d| [d.year, d.month, d.date] == self.current_date)
+    }
+
+    /// `SetToday`
+    pub fn set_today(&mut self, n: usize) {
+        let d = &self.days[n];
+        self.current_date = [d.year, d.month, d.date];
+    }
+
     pub fn day_map(&self) -> &CampaignDayMap {
         self.day_map.as_ref().expect("day map")
     }

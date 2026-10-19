@@ -85,6 +85,11 @@ impl Screen {
         Screen::new(None)
     }
 
+    /// Hand the terminal back when the game is done with it.
+    pub fn into_terminal(self) -> Option<ratatui::DefaultTerminal> {
+        self.term
+    }
+
     pub fn is_headless(&self) -> bool {
         self.term.is_none()
     }

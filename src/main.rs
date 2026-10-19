@@ -2,12 +2,15 @@
 #![allow(dead_code)]
 
 mod bones;
+mod calendar;
 mod campaign;
 mod color;
 mod combat;
 mod console;
 mod credits;
 mod crew;
+mod day;
+mod daymap;
 mod defs;
 mod draw;
 mod encounter;
@@ -35,8 +38,8 @@ use ui::Screen;
 const HELP: &str = "armcom [--art | --encounter [advance|battle|counterattack]]
 
 Armoured Commander, the World War II tank commander roguelike by Gregory
-Adam Scott, on its way to the terminal. Early port: the main menu and a
-single encounter run; the campaign does not yet.
+Adam Scott, on its way to the terminal. New Campaign plays a whole
+campaign; there are no saved games yet, and no sound.
 
   --art        browse the game's REXPaint art (tank diagrams, campaign maps);
                left/right to change picture, q to quit
@@ -98,8 +101,8 @@ fn main() -> io::Result<()> {
     };
     log::info!("start: {}", mode.name());
 
-    let mut terminal = ratatui::init();
-    let result = run(&mut terminal, mode, &mut rng);
+    let terminal = ratatui::init();
+    let result = run(terminal, mode, &mut rng);
     ratatui::restore();
     log::info!("quit");
     result
@@ -114,7 +117,7 @@ fn art(index: usize) -> Mode {
     Mode::Art { index, con }
 }
 
-fn run(terminal: &mut ratatui::DefaultTerminal, mut mode: Mode, rng: &mut Rng) -> io::Result<()> {
+fn run(mut terminal: ratatui::DefaultTerminal, mut mode: Mode, rng: &mut Rng) -> io::Result<()> {
     let mut note: Option<(String, Instant)> = None;
     let mut snapshot = Instant::now();
     loop {
@@ -185,7 +188,11 @@ fn run(terminal: &mut ratatui::DefaultTerminal, mut mode: Mode, rng: &mut Rng) -
                 match menu.key(c) {
                     Some(Choice::Quit) => return Ok(()),
                     Some(Choice::NewCampaign) => {
-                        note = Some(("New Campaign is not ported yet; try armcom --encounter".into(), Instant::now()))
+                        log::info!("switch: new campaign");
+                        terminal = play_campaign(terminal)?;
+                        mode = Mode::Menu(Box::new(MainMenu::new(rng)));
+                        log::info!("switch: menu");
+                        continue;
                     }
                     Some(Choice::HighScores) => {
                         mode = Mode::Scores(Box::new(credits::high_scores()));
@@ -230,4 +237,16 @@ fn run(terminal: &mut ratatui::DefaultTerminal, mut mode: Mode, rng: &mut Rng) -
             }
         }
     }
+}
+
+/// A new campaign, from the main menu until it ends or the player quits;
+/// the terminal is the campaign's while it runs, with the mouse on.
+fn play_campaign(terminal: ratatui::DefaultTerminal) -> io::Result<ratatui::DefaultTerminal> {
+    let _ = ratatui::crossterm::execute!(io::stdout(), event::EnableMouseCapture);
+    let mut game = Game::new(Screen::new(Some(terminal)), Rng::from_clock());
+    game.new_campaign();
+    let mut terminal = game.scr.into_terminal().expect("the campaign hands the terminal back");
+    let _ = ratatui::crossterm::execute!(io::stdout(), event::DisableMouseCapture);
+    terminal.clear()?;
+    Ok(terminal)
 }

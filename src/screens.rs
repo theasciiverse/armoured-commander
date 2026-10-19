@@ -1,5 +1,5 @@
-//! Windows not ported yet, and the campaign day screen's drawing, which
-//! the encounter code calls. Each says so when opened.
+//! The information windows: help, tank info, crew info and skills,
+//! settings, campaign stats and the journal.
 
 use crate::color;
 use crate::console::{Align, Console};
@@ -9,10 +9,6 @@ use crate::layout::*;
 use crate::ui::{Vk, wrap};
 
 impl Game {
-    fn not_ported(&mut self, what: &str) {
-        self.popup(&format!("{what} is not ported yet."));
-    }
-
     /// `ShowHelp`: help topics in alphabetical order, the selected one
     /// in the middle; a letter jumps to the first topic starting with it.
     pub fn show_help(&mut self) {
@@ -150,11 +146,6 @@ impl Game {
         }
         self.after_window();
         select_tank.then(|| tank_list[selected].clone())
-    }
-
-    /// `ShowCrewInfo`
-    pub fn show_crew_info(&mut self) {
-        self.not_ported("Crew Info");
     }
 
     /// `ShowSettings`. The original's full screen and resolution options
@@ -344,20 +335,293 @@ impl Game {
         self.flush();
     }
 
-    /// `MainGunAmmoMenu`
-    pub fn main_gun_ammo_menu(&mut self, _no_dark: bool) {
-        self.not_ported("The main gun ammunition menu");
+    /// `ShowCrewInfo`: the crew side by side; Enter for a crewman's
+    /// skills, N and K to rename them or set a nickname.
+    pub fn show_crew_info(&mut self) {
+        self.darken_screen();
+        let mut selected = 0usize;
+        loop {
+            let m = &mut self.menu_con;
+            m.bg = color::BLACK;
+            m.fg = color::WHITE;
+            m.clear();
+            m.frame(0, 0, MENU_CON_WIDTH, MENU_CON_HEIGHT, false, false);
+            m.fg = MENU_TITLE_COLOR;
+            m.print_ex(MENU_CON_XM, 1, Align::Center, "Tank Crew Info");
+            m.fg = color::WHITE;
+            let hints = [
+                format!("[{}] Change Crew Selection", hl("A/D/Left/Right")),
+                format!("[{}] View/Add/Upgrade Skills", hl("Enter")),
+                format!("Change [{}]ame", hl("N")),
+                format!("[{}] Set/Reset Nickname", hl("K")),
+                format!("[{}] Return", hl("ESC")),
+            ];
+            for (n, h) in hints.iter().enumerate() {
+                m.print_ex(MENU_CON_XM, MENU_CON_HEIGHT - 7 + n as i32, Align::Center, h);
+            }
+            for n in 0..self.tank.crew.len() {
+                let x = 2 + n as i32 * CREW_PANEL_W;
+                let rank = self.crew_rank_fit(n);
+                display_crew_info(&mut self.menu_con, &self.tank.crew[n], &rank, x, 3, n == selected);
+            }
+            self.blit_menu();
+            self.flush();
+            if self.scr.is_headless() {
+                break;
+            }
+
+            let mut refresh = false;
+            while !refresh {
+                self.check_for_event();
+                let vk = self.key_vk();
+                let kc = self.key_char().to_ascii_lowercase();
+                if vk == Vk::Escape {
+                    return self.after_window();
+                } else if vk == Vk::Enter {
+                    self.show_skills(selected);
+                    refresh = true;
+                } else if kc == 'd' || vk == Vk::Right {
+                    selected = self.tank.next_crew(selected);
+                    refresh = true;
+                } else if kc == 'a' || vk == Vk::Left {
+                    selected = self.tank.prev_crew(selected);
+                    refresh = true;
+                } else if kc == 'k' {
+                    self.con.clear();
+                    let text = format!("Enter new nickname for {}", self.crew(selected).name);
+                    let nick = self.get_input(&text, SCREEN_YM - 2, NICKNAME_MAX_LEN, &[], false);
+                    self.crewm(selected).nickname = nick;
+                    refresh = true;
+                } else if kc == 'n' {
+                    self.con.clear();
+                    let text = format!("Enter new name for {}", self.crew(selected).name);
+                    let name = self.get_input(&text, SCREEN_YM - 2, NAME_MAX_LEN, &[], true);
+                    self.crewm(selected).name = name;
+                    refresh = true;
+                }
+                self.flush();
+            }
+        }
+        self.after_window();
     }
 
-    /// `RenderCampaign`
-    pub fn render_campaign(&mut self, _no_flush: bool) {}
+    /// A crewman's full rank, or the short one if the full one is too wide
+    /// for a crew panel ("Private First Class").
+    fn crew_rank_fit(&self, i: usize) -> String {
+        let full = self.crew_rank(i, false);
+        if full.chars().count() as i32 <= CREW_PANEL_W - 2 { full } else { self.crew_rank(i, true) }
+    }
 
-    /// `UpdateCActionCon`
-    pub fn update_c_action_con(&mut self) {}
+    /// `ShowSkills`: the skills a crewman's position can take, and spending
+    /// skill points on them.
+    pub fn show_skills(&mut self, i: usize) {
+        if !self.crew(i).alive {
+            return;
+        }
+        let mut selected_skill = 0usize;
+        loop {
+            let usa = self.campaign.player_nation == "USA";
+            let cm = &self.tank.crew[i];
+            let skill_list: Vec<(&defs::CrewSkill, i32)> = defs::defs()
+                .skills
+                .iter()
+                .filter(|s| s.restrictions.is_empty() || s.restrictions.contains(&cm.position))
+                .filter(|s| s.name != "Gyrostabilizer" || usa)
+                .map(|s| (s, cm.skills.iter().find(|k| k.name == s.name).map_or(0, |k| k.level)))
+                .collect();
+            let gyro_ok = self.campaign.gyro_skill_avail;
+            let rank = self.crew_rank_fit(i);
 
-    /// `UpdateCInfoCon`
-    pub fn update_c_info_con(&mut self, _mx: i32, _my: i32) {}
+            let m = &mut self.menu_con;
+            m.bg = color::BLACK;
+            m.fg = color::WHITE;
+            m.clear();
+            m.frame(0, 0, MENU_CON_WIDTH, MENU_CON_HEIGHT, false, false);
+            m.fg = MENU_TITLE_COLOR;
+            m.print_ex(MENU_CON_XM, 1, Align::Center, "Crew Skills");
+            m.fg = color::WHITE;
+            m.print_ex(MENU_CON_XM, MENU_CON_HEIGHT - 5, Align::Center, &format!("[{}] Change Skill Selection", hl("W/S/Up/Down")));
+            m.print_ex(MENU_CON_XM, MENU_CON_HEIGHT - 4, Align::Center, &format!("[{}] Add/Upgrade Skill", hl("Enter")));
+            m.print_ex(MENU_CON_XM, MENU_CON_HEIGHT - 3, Align::Center, &format!("[{}] Return/Continue", hl("ESC")));
+            display_crew_info(m, cm, &rank, 1, 3, false);
 
-    /// `UpdateCOverlay`
-    pub fn update_c_overlay(&mut self, _highlight_node: Option<usize>) {}
+            let (lx, dx) = (21, 46);
+            m.fg = color::LIGHT_GREY;
+            m.frame(dx, 3, 52, 20, false, false);
+            m.print(dx + 3, 4, "Description");
+            m.print(dx + 3, 16, "Activation Levels");
+            m.frame(lx, 3, 24, 20, false, false);
+            m.print(lx + 2, 4, "Skills");
+            m.fg = color::WHITE;
+
+            for (n, (skill, level)) in skill_list.iter().enumerate() {
+                let y = 6 + n as i32;
+                if n == selected_skill {
+                    m.bg = color::DARKER_GREY;
+                    m.rect(lx + 1, y, 22, 1, false);
+                    m.bg = color::BLACK;
+                    m.fg = color::WHITE;
+                    for (k, line) in wrap(&skill.desc, 46, " ").iter().enumerate() {
+                        m.print(dx + 3, 6 + k as i32, line);
+                    }
+                    if skill.levels[0] == 100 {
+                        m.print(dx + 3, 18, "Always active");
+                    } else {
+                        let mut x2 = dx + 3;
+                        for sl in &skill.levels {
+                            m.fg = if sl <= level { color::LIGHT_BLUE } else { color::WHITE };
+                            m.print(x2, 18, &format!("{sl}%"));
+                            x2 += sl.to_string().len() as i32 + 2;
+                        }
+                    }
+                }
+                m.fg = if skill.name == "Gyrostabilizer" && !gyro_ok {
+                    GREYED_COLOR
+                } else if *level > 0 {
+                    color::LIGHT_BLUE
+                } else {
+                    color::WHITE
+                };
+                m.print(lx + 2, y, &skill.name);
+            }
+            m.fg = color::WHITE;
+            let choice = skill_list.get(selected_skill).map(|(s, l)| ((*s).clone(), *l));
+            let count = skill_list.len();
+            self.blit_menu();
+            self.flush();
+            if self.scr.is_headless() {
+                return;
+            }
+
+            let mut refresh = false;
+            while !refresh {
+                self.check_for_event();
+                let vk = self.key_vk();
+                let kc = self.key_char().to_ascii_lowercase();
+                if vk == Vk::Escape {
+                    return;
+                }
+                if vk == Vk::Up || kc == 'w' {
+                    selected_skill = if selected_skill == 0 { count - 1 } else { selected_skill - 1 };
+                    refresh = true;
+                } else if vk == Vk::Down || kc == 's' {
+                    selected_skill = if selected_skill + 1 >= count { 0 } else { selected_skill + 1 };
+                    refresh = true;
+                } else if vk == Vk::Enter {
+                    if let Some((skill, level)) = &choice {
+                        if !self.crew(i).no_actions() && self.crew(i).skill_pts > 0 && (skill.name != "Gyrostabilizer" || gyro_ok) {
+                            self.add_or_upgrade_skill(i, skill, *level);
+                        }
+                    }
+                    refresh = true;
+                }
+                self.flush();
+            }
+        }
+    }
+
+    /// Spend a skill point on a new skill, or on its next activation level.
+    fn add_or_upgrade_skill(&mut self, i: usize, skill: &defs::CrewSkill, level: i32) {
+        let name = self.crew(i).name.clone();
+        if level == 0 {
+            if self.popup_confirm(&format!("Spend a skill point to add skill \"{}\"", skill.name)) {
+                let c = self.crewm(i);
+                c.skill_pts -= 1;
+                c.skills.push(crate::model::SkillRecord { name: skill.name.clone(), level: skill.levels[0] });
+                self.write_journal(&format!("{name} added a new skill: {}, now at {}% activation", skill.name, skill.levels[0]));
+                self.play_sound("new_skill");
+            }
+        } else if let Some(&next) = skill.levels.iter().find(|&&l| level < l) {
+            if self.popup_confirm(&format!("Spend a skill point to upgrade skill \"{}\"", skill.name)) {
+                let c = self.crewm(i);
+                c.skill_pts -= 1;
+                c.upgrade_skill(&skill.name, next);
+                self.write_journal(&format!("{name} upgraded a skill: {}, now at {next}% activation", skill.name));
+                self.play_sound("new_skill");
+            }
+        }
+    }
+}
+
+/// Crew panel size on the crew screens: five across 100 columns (the
+/// original's were 27 wide and 30 tall).
+const CREW_PANEL_W: i32 = 19;
+const CREW_PANEL_H: i32 = 17;
+
+/// `DisplayCrewInfo`: a crewman's panel. A hometown or wound too long for
+/// one line takes two, so the rows below sit lower than the original's.
+fn display_crew_info(con: &mut Console, c: &crate::model::Crewman, rank: &str, x: i32, y: i32, highlight: bool) {
+    let inner = (CREW_PANEL_W - 2) as usize;
+    let fit = |s: &str| s.chars().take(inner).collect::<String>();
+    con.fg = if highlight { SELECTED_COLOR } else { color::LIGHT_GREY };
+    con.frame(x, y, CREW_PANEL_W, CREW_PANEL_H, false, false);
+    con.fg = color::WHITE;
+    con.print_ex(x + 1, y + 1, Align::Left, &c.position);
+    con.fg = color::LIGHT_GREY;
+    con.print_ex(x + 1, y + 2, Align::Left, &fit(rank));
+    con.fg = color::WHITE;
+    con.print_ex(x + 1, y + 3, Align::Left, &fit(&c.name));
+    if !c.nickname.is_empty() {
+        con.fg = color::LIGHT_BLUE;
+        con.print_ex(x + 1, y + 4, Align::Left, &fit(&format!(" \"{}\"", c.nickname)));
+    }
+    con.fg = color::LIGHT_GREY;
+    for (n, line) in wrap(&c.hometown, inner, "").iter().take(2).enumerate() {
+        con.print_ex(x + 1, y + 5 + n as i32, Align::Left, line);
+    }
+    if c.no_actions() {
+        con.fg = color::LIGHT_RED;
+        let text = if !c.alive {
+            "Dead"
+        } else if c.unconscious {
+            "Unconscious"
+        } else {
+            "Stunned"
+        };
+        con.print_ex(x + 2, y + 7, Align::Left, text);
+    }
+    let wound = if c.v_serious_wound {
+        "Very Serious Wound"
+    } else if c.serious_wound {
+        "Serious Wound"
+    } else if c.light_wound {
+        "Light Wound"
+    } else {
+        ""
+    };
+    con.fg = color::RED;
+    for (n, line) in wrap(wound, inner - 1, "").iter().take(2).enumerate() {
+        con.print_ex(x + 2, y + 8 + n as i32, Align::Left, line);
+    }
+
+    for (n, dec) in c.decorations.iter().take(inner).enumerate() {
+        let x1 = x + 1 + n as i32;
+        let (top, bottom) = match dec.as_str() {
+            "Purple Heart" => ((31, color::PURPLE, color::BLACK), (3, color::PURPLE, color::BLACK)),
+            "Bronze Star" => ((31, color::RED, color::BLACK), (15, color::LIGHT_YELLOW, color::BLACK)),
+            "Silver Star" => ((31, color::BLUE, color::BLACK), (15, color::LIGHT_YELLOW, color::BLACK)),
+            "Distinguished Service Cross" => ((31, color::BLUE, color::BLACK), (197, color::DARK_YELLOW, color::BLACK)),
+            "Congressional Medal of Honor" => ((254, color::LIGHT_BLUE, color::BLACK), (42, color::YELLOW, color::BLACK)),
+            "Military Medal" => ((186, color::WHITE, color::BLUE), (42, color::LIGHT_GREY, color::BLACK)),
+            "Military Cross" => ((179, color::PURPLE, color::WHITE), (31, color::LIGHT_GREY, color::BLACK)),
+            "Distinguished Service Order" => ((179, color::RED, color::BLUE), (31, color::WHITE, color::BLACK)),
+            "Victoria Cross" => ((178, color::RED, color::BLACK), (31, color::DARK_YELLOW, color::BLACK)),
+            _ => continue,
+        };
+        con.put_char_ex(x1, y + 10, top.0, top.1, top.2);
+        con.put_char_ex(x1, y + 11, bottom.0, bottom.1, bottom.2);
+    }
+
+    con.fg = color::LIGHT_GREY;
+    con.print_ex(x + 1, y + 13, Align::Left, "Level:");
+    con.print_ex(x + 1, y + 14, Align::Left, "Exp:");
+    con.print_ex(x + 1, y + 15, Align::Left, "Skill Pts:");
+    con.fg = color::WHITE;
+    con.print_ex(x + 8, y + 13, Align::Left, &c.level.to_string());
+    con.print_ex(x + 6, y + 14, Align::Left, &format!("{}/{}", c.exp, Game::get_exp_req(c.level + 1)));
+    if c.skill_pts > 0 {
+        con.fg = color::LIGHT_BLUE;
+    }
+    con.print_ex(x + 12, y + 15, Align::Left, &c.skill_pts.to_string());
+    con.fg = color::WHITE;
 }

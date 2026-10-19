@@ -820,21 +820,6 @@ impl Game {
         log::debug!("save_game: not ported yet");
     }
 
-    /// `CheckCommander`: true if the campaign ends because the commander
-    /// is dead or sent home (and the casual commander option is off).
-    pub fn check_commander(&mut self) -> bool {
-        let Some(c) = self.crew_pos("Commander") else { return false };
-        let cm = self.crew(c);
-        if cm.alive && !cm.v_serious_wound {
-            return false;
-        }
-        if self.campaign.casual_commander {
-            return false;
-        }
-        self.campaign.over = true;
-        true
-    }
-
     /// The encounter's own debug start (`armcom --encounter`): a crew, a
     /// tank and one area of a Patton's Best day, straight into battle.
     pub fn debug_encounter(&mut self, scen_type: &str) {

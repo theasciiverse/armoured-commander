@@ -10,10 +10,15 @@ Status: started 2026-10-13. Console layer, glyph table, `.xp` art, the
 animated main menu, and (2026-10-18) the whole encounter: battle rules,
 enemy units, crew, and the 100x30 encounter screen. `armcom --encounter
 [advance|battle|counterattack]` plays one encounter with a fresh crew.
-Also ported: credits, high scores, F1 help, F2 tank info (with the tank
-choice the campaign will use), F4 settings (without the full screen
-options), F5 campaign stats and the journal. Not yet: the campaign (day
-map, calendar, refits), F3 crew info and skills, saves, sound.
+Also ported: credits, high scores, F1 help, F2 tank info, F4 settings
+(without the full screen options), F5 campaign stats and the journal.
+2026-10-19: the campaign. New Campaign on the main menu plays a whole
+campaign: choosing it and its settings, the crew and their skills (F3
+crew info too), the calendar with refits and tank offers, the day map
+with its actions, quests and random events, battles, crew replacement,
+awards and promotions, the end of the campaign with its high score and
+journal file. Not yet: saves (so quitting ends a campaign, and the game
+says so), sound, the main menu at 100x30 (still 149x61).
 
 ## Source and licence
 
@@ -69,6 +74,14 @@ line. Only `present` in `main.rs` knows about the terminal.
   has no vehicle entry, so `GetRF` gives it rarity 0 and it is never offered.
 - `src/title.rs`: `MainMenu`, ported line for line (no bones file or saved
   game yet, so no tombstone and no Continue).
+- The campaign: `src/calendar.rs` (new campaign, calendar, refits, awards,
+  the campaign's end), `src/day.rs` (a day of action: its actions,
+  `PostEncounter`, the tank view and ammunition menu, the day loop),
+  `src/daymap.rs` (`GetPath`, map generation and painting, the day
+  screen), `src/campaign.rs` (the `Campaign` class's methods: weather,
+  time, enemy advances, random events, sunset). F3 crew info and skills
+  are in `src/screens.rs`. `main.rs` lends the terminal to a `Game` for
+  the length of a campaign and takes it back for the menu.
 
 `armcom --art` browses the art; `RUST_LOG=debug armcom 2>armcom.log` logs
 every key, mode change and a state line each second.
@@ -88,8 +101,23 @@ The original screen is 149x61 cells of 8x12 pixels. Agreed with David
 - **Campaign day map:** generated at terminal proportions, since
   `GenerateCampaignMap` builds it fresh each day; only the map's shape
   changes, not the rules. Scrolling window beside a 40-column panel.
+  Done (2026-10-19) at 59x82 for the original's 90x90, in a 59x29 window:
+  the height is what keeps a day as long. Run 300 times at each size, the
+  generator crosses 7.1 areas from start to exit at 90x90 and 7.0 at
+  59x82, with about 40 areas on the map instead of 55. The left panel has
+  the date, the actions (their names shortened to fit 39 columns) and the
+  info panel, which describes the area under the pointer or, with no
+  pointer over the map, the selected or current area (the original needed
+  the mouse for this).
 - The overview maps (85x50, nearly all solid blocks) show in half blocks
-  at 85x25. Menus become popups sized to their content.
+  at 85x25. Menus become popups sized to their content. As built: the
+  calendar needs its 40-column text panel too, so the half-block map shows
+  in a 59-column window that follows the day's location marker, rather
+  than all 85 columns. For David to look at.
+- Other windows at 100x30: crew panels 19 wide (a rank too long for one,
+  "Private First Class", shows short); the ammunition menu packed into 30
+  rows. Alt switched the ammunition menu's direction of move in the
+  original; a terminal cannot see Alt alone, so Tab does.
 
 Notes from the first look:
 
@@ -114,6 +142,21 @@ spot crashed (now the AP table, as its comment says); a unit that dies
 during its own action no longer acts again; after an ambush knocks out
 the tank, the battle is cleared instead of lingering into the campaign.
 
+Fixed in the campaign: on a forest day the terrain table stops at 11, so
+a roll of 12 left an area with no terrain, which crashed when captured
+(`AwardCaptureVP`); it is marshland now, the table's last entry. In a
+counterattack, Tab listed a front-line area once for each enemy area
+beside it, and could stick on it. `CheckCommander` cannot end a campaign
+twice. The display settings carry over to a new campaign.
+
+Fixed, but it touches the odds, so for David to confirm: the original
+builds roads inside `PaintCampaignMap`, which runs twice for every new
+map, so most maps got a second network of roads over the first (and
+movement along roads is quicker). Roads are built once here.
+
+Kept, to decide (campaign): area resistance is rolled before the roads
+exist, so its road modifiers (+2 improved, +1 dirt) never apply.
+
 Kept, to decide: the campaign files' date-based activation modifiers
 never apply (`v += mod['mod']` changes a copy); the spawn-range table
 tests `'AT'` not `'AT_GUN'`; crew wound modifiers test for `'turret'` in
@@ -127,17 +170,22 @@ counts no VP for that encounter.
 ## Tests
 
 `cargo test` includes 450 headless encounters (150 seeds, three
-missions) played by an autopilot to the end; they must all finish
-without a panic.
+missions) played by an autopilot to the end, and six whole campaigns
+from New Campaign to the end of the calendar or the commander's death
+(random campaign, settings and start date; `ARMCOM_CAMPAIGNS=80 cargo
+test --release campaigns` for more, about 35 seconds). All must finish
+without a panic. Both campaigns' day maps are checked for a way from
+start to exit.
 
 ## Order of work
 
 1. Done: console layer, glyphs, art, main menu.
 2. Done: terminal layout agreed (see Screen size).
-3. Done: the data. Done: the encounter. Next: the campaign (new
-   campaign, calendar, day map at terminal proportions, refits), then the
-   info windows.
-4. Saves, bones file (graveyard, high scores), sound.
+3. Done: the data, the encounter, the campaign, the info windows.
+4. Next: saves (the campaign and calendar menus say there are none yet),
+   the main menu at 100x30, sound. The bones file already keeps high
+   scores, the graveyard and tutorial flags; journals are written to the
+   data folder at the end of a campaign.
 
 ## House conventions
 

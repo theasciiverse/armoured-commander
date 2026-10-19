@@ -54,16 +54,25 @@ pub const TEXT_CON_X: i32 = SCREEN_XM - TEXT_CON_XM;
 pub const TEXT_CON_Y: i32 = 1;
 
 /// Campaign day screen: the map window on the right as in the original,
-/// the action and info panels on the left.
+/// the date, action and info panels on the left, one above the other.
+///
+/// The day map is generated at 59x82 where the original's was 90x90. The
+/// height is what keeps a day as long: the same generator, run 300 times
+/// at each size, crosses 7.1 areas from start to exit at 90x90 and 7.0 at
+/// 59x82 (about 40 areas on the map instead of 55).
 pub const C_MAP_CON_WIDTH: i32 = 59;
-pub const C_MAP_CON_HEIGHT: i32 = 60;
+pub const C_MAP_CON_HEIGHT: i32 = 82;
 pub const C_MAP_CON_WINDOW_W: i32 = 59;
-pub const C_MAP_CON_WINDOW_H: i32 = SCREEN_HEIGHT - 2;
+pub const C_MAP_CON_WINDOW_H: i32 = SCREEN_HEIGHT - 1;
 pub const C_MAP_CON_X: i32 = SCREEN_WIDTH - C_MAP_CON_WINDOW_W;
+pub const C_MAP_CON_Y: i32 = 1;
 pub const C_ACTION_CON_W: i32 = LEFT_W - 1;
-pub const C_ACTION_CON_H: i32 = 14;
+pub const C_ACTION_CON_H: i32 = 13;
+pub const C_ACTION_CON_X: i32 = 1;
+pub const C_ACTION_CON_Y: i32 = DATE_CON_Y + DATE_CON_HEIGHT + 1;
 pub const C_INFO_CON_W: i32 = LEFT_W - 1;
-pub const C_INFO_CON_H: i32 = SCREEN_HEIGHT - C_ACTION_CON_H - 4;
+pub const C_INFO_CON_Y: i32 = C_ACTION_CON_Y + C_ACTION_CON_H + 1;
+pub const C_INFO_CON_H: i32 = SCREEN_HEIGHT - C_INFO_CON_Y;
 pub const C_INFO_CON_X: i32 = C_INFO_CON_W / 2;
 
 /// Hex spacing on the map: 8 columns across, 4 rows down, each column of
@@ -119,5 +128,8 @@ mod tests {
         assert!(MSG_CON_HEIGHT >= 6);
         assert_eq!(MAP_CON_X + MAP_CON_WIDTH, SCREEN_WIDTH);
         assert_eq!(MAP_CON_Y + MAP_CON_HEIGHT, SCREEN_HEIGHT);
+        assert_eq!(C_MAP_CON_X + C_MAP_CON_WINDOW_W, SCREEN_WIDTH);
+        assert_eq!(C_MAP_CON_Y + C_MAP_CON_WINDOW_H, SCREEN_HEIGHT);
+        assert!(C_INFO_CON_H >= 12);
     }
 }

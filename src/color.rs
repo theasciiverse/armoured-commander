@@ -32,6 +32,18 @@ pub fn lerp(c1: Color, c2: Color, coef: f32) -> Color {
     Color(ch(c1.0, c2.0), ch(c1.1, c2.1), ch(c1.2, c2.2))
 }
 
+/// `color1 * color2`: each channel multiplied, over 255.
+pub fn mul(c1: Color, c2: Color) -> Color {
+    let ch = |a: u8, b: u8| (a as u32 * b as u32 / 255) as u8;
+    Color(ch(c1.0, c2.0), ch(c1.1, c2.1), ch(c1.2, c2.2))
+}
+
+/// `libtcod.Color(r + n, g + n, b + n)`, kept within 0 to 255.
+pub fn shift(c: (i32, i32, i32), n: i32) -> Color {
+    let ch = |v: i32| (v + n).clamp(0, 255) as u8;
+    Color(ch(c.0), ch(c.1), ch(c.2))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

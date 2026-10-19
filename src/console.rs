@@ -156,6 +156,30 @@ impl Console {
         }
     }
 
+    /// `console_blit` at foreground 1.0, background 0.0: glyphs and their
+    /// colour only, over whatever background is already there, skipping
+    /// cells whose background is the source's key colour.
+    #[allow(clippy::too_many_arguments)]
+    pub fn blit_fg(src: &Console, sx: i32, sy: i32, w: i32, h: i32, dst: &mut Console, dx: i32, dy: i32) {
+        for y in 0..h {
+            for x in 0..w {
+                let Some(cell) = src.cell(sx + x, sy + y) else { continue };
+                if src.key == Some(cell.bg) {
+                    continue;
+                }
+                if let Some(i) = dst.index(dx + x, dy + y) {
+                    dst.cells[i].ch = cell.ch;
+                    dst.cells[i].fg = cell.fg;
+                }
+            }
+        }
+    }
+
+    /// `console_get_char`; 0 outside the console.
+    pub fn char_at(&self, x: i32, y: i32) -> u8 {
+        self.cell(x, y).map_or(0, |c| c.ch)
+    }
+
     /// Blit within one console (`console_blit(c, ..., c, ...)`).
     pub fn blit_self(&mut self, sx: i32, sy: i32, w: i32, h: i32, dx: i32, dy: i32) {
         let src = self.clone();
@@ -201,6 +225,13 @@ impl Console {
     pub fn set_char_bg(&mut self, x: i32, y: i32, bg: Color) {
         if let Some(i) = self.index(x, y) {
             self.cells[i].bg = bg;
+        }
+    }
+
+    /// `console_set_char_foreground`.
+    pub fn set_char_fg(&mut self, x: i32, y: i32, fg: Color) {
+        if let Some(i) = self.index(x, y) {
+            self.cells[i].fg = fg;
         }
     }
 
