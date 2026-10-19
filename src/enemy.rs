@@ -6,11 +6,11 @@ use crate::game::*;
 use crate::layout::*;
 use crate::model::*;
 
-/// `GetFiringSound`: the sound for a gun calibre.
+/// `GetFiringSound`: the sound for a gun calibre. There is no 50 mm
+/// sound; the original uses the 20 mm one for both.
 pub fn firing_sound(gun_type: &str) -> Option<&'static str> {
     match gun_type {
-        "20L" => Some("20_mm_gun"),
-        "50L" => Some("50_mm_gun"),
+        "20L" | "50L" => Some("20_mm_gun"),
         "75" | "75L" | "75LL" => Some("75_mm_gun"),
         "76L" | "76LL" => Some("76_mm_gun"),
         "88L" | "88LL" => Some("88_mm_gun"),

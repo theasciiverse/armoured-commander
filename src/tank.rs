@@ -377,11 +377,10 @@ impl Game {
         self.write_journal(&text);
     }
 
-    /// `PlaySound`. Sound is not ported yet; this marks where the original
-    /// plays one.
+    /// `PlaySound`, unless the sounds are turned off (or headless).
     pub fn play_sound(&mut self, name: &str) {
-        if self.campaign.sounds {
-            log::trace!("sound: {name}");
+        if self.campaign.sounds && !self.scr.is_headless() {
+            crate::sound::play(name);
         }
     }
 }

@@ -20,8 +20,8 @@ awards and promotions, the end of the campaign with its high score and
 journal file. Saved games (2026-10-19): saved at the original's points,
 including mid-battle, and picked up again by Continue on the main menu.
 The main menu (2026-10-19) is laid out for the terminal too, with its
-tombstone. Bigger encounter hexes on big screens (2026-10-19). Not yet:
-sound.
+tombstone. Bigger encounter hexes on big screens, and sound
+(2026-10-19). Everything in the original is ported.
 
 ## Source and licence
 
@@ -34,8 +34,8 @@ sound.
   (`LICENSE`, copied from the original). `xp_loader.py` was MIT (Sean
   Hagar); `src/xp.rs` is our own reader of the same format.
 - The art in `data/` is the original's REXPaint files, unchanged.
-- Sounds (`sounds/*.wav` in the original, GPL with the rest) are not
-  brought over yet.
+- Sounds: the original's `sounds/*.wav` (GPL with the rest), unchanged
+  in `data/sounds/`, built into the binary.
 - Steamworks is dropped.
 - The name stays "Armoured Commander" (David, 2026-10-18), with Gregory
   Adam Scott's blessing to be asked for (sudasana@gmail.com, in the
@@ -90,6 +90,12 @@ line. Only `present` in `main.rs` knows about the terminal.
   time, enemy advances, random events, sunset). F3 crew info and skills
   are in `src/screens.rs`. `main.rs` lends the terminal to a `Game` for
   the length of a campaign and takes it back for the menu.
+- `src/sound.rs`: `PlaySound` with rodio. One audio thread owns the
+  output device and mixes whatever is playing (the original had 16 SDL
+  channels); without a device the game plays on silently, and tests never
+  open it. rodio's message on dropping the device is switched off, as it
+  would print over the game. Builds need ALSA's development files on
+  Linux (`libasound2-dev`).
 - `src/save.rs`: the saved game, `savegame.json` in the data folder: the
   campaign, tank and battle as serde JSON (the original shelved the same
   three objects), with `SavedGameInfo` for the main menu. What the
@@ -221,8 +227,9 @@ about 10 seconds; debug takes about two minutes.
 1. Done: console layer, glyphs, art, main menu.
 2. Done: terminal layout agreed (see Screen size).
 3. Done: the data, the encounter, the campaign, the info windows.
-4. Done: saves, the main menu with its tombstone, bigger hexes. Next:
-   sound. The bones file already keeps high scores, the graveyard and
+4. Done: saves, the main menu with its tombstone, bigger hexes, sound.
+   Next: David's rule decisions (above), release builds, then
+   Armoured Commander II. The bones file already keeps high scores, the graveyard and
    tutorial flags; journals are written to the data folder at the end of
    a campaign.
 5. Then Armoured Commander II (David, 2026-10-19), reusing what applies.

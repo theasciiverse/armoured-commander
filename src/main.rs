@@ -21,6 +21,7 @@ mod layout;
 mod model;
 mod rng;
 mod save;
+mod sound;
 mod screens;
 mod tank;
 mod title;
@@ -195,7 +196,11 @@ fn run(mut terminal: ratatui::DefaultTerminal, mut mode: Mode, rng: &mut Rng) ->
         match &mut mode {
             Mode::Menu(menu) => {
                 let KeyCode::Char(c) = key.code else { continue };
-                match menu.key(c) {
+                let choice = menu.key(c);
+                if matches!(choice, Some(Choice::Continue | Choice::NewCampaign | Choice::HighScores | Choice::Credits)) {
+                    sound::play("menu_select");
+                }
+                match choice {
                     Some(Choice::Quit) => return Ok(()),
                     Some(Choice::NewCampaign) => {
                         log::info!("switch: new campaign");
@@ -229,6 +234,7 @@ fn run(mut terminal: ratatui::DefaultTerminal, mut mode: Mode, rng: &mut Rng) ->
             }
             Mode::Scores(_) => {
                 if key.code == KeyCode::Enter {
+                    sound::play("menu_select");
                     mode = main_menu(rng);
                     log::info!("switch: menu");
                 }

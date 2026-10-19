@@ -629,6 +629,7 @@ impl Game {
                 if key.vk == Vk::Enter {
                     refresh = true;
                     exit = true;
+                    self.play_sound("menu_select");
                 } else if key.vk == Vk::Backspace {
                     if input_text.pop().is_some() {
                         refresh = true;
