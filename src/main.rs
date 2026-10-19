@@ -1,6 +1,8 @@
 // Much of the campaign is translated ahead of the screens that call it.
 #![allow(dead_code)]
 
+#[cfg(target_os = "linux")]
+mod alsa;
 mod bones;
 mod calendar;
 mod campaign;
@@ -40,8 +42,8 @@ use ui::Screen;
 const HELP: &str = "armcom [--art | --encounter [advance|battle|counterattack]]
 
 Armoured Commander, the World War II tank commander roguelike by Gregory
-Adam Scott, on its way to the terminal. New Campaign plays a whole
-campaign, saved as it goes (Continue picks it up); no sound yet.
+Adam Scott, in the terminal. New Campaign plays a whole campaign, saved
+as it goes (Continue picks it up).
 
   --art        browse the game's REXPaint art (tank diagrams, campaign maps);
                left/right to change picture, q to quit

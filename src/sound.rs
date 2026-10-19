@@ -3,6 +3,10 @@
 //! The original mixed them on 16 SDL channels; here one audio thread owns
 //! the output device and mixes as many as are playing. Without an audio
 //! device the game plays on silently. Tests never open the device.
+//!
+//! On Linux, ALSA is loaded when the first sound plays (`alsa.rs`), so
+//! the binary does not need libasound to start; elsewhere rodio's own
+//! output (cpal) is used.
 
 use std::sync::OnceLock;
 use std::sync::mpsc::{self, Sender};
@@ -51,27 +55,36 @@ fn queue() -> Option<&'static Sender<&'static [u8]>> {
                 return None;
             }
             let (tx, rx) = mpsc::channel::<&'static [u8]>();
-            let spawned = std::thread::Builder::new().name("audio".into()).spawn(move || {
-                let mut sink = match rodio::DeviceSinkBuilder::open_default_sink() {
-                    Ok(s) => s,
-                    Err(e) => {
-                        log::warn!("no audio device, playing without sound: {e}");
-                        return;
-                    }
-                };
-                // rodio would print to the terminal, over the game
-                sink.log_on_drop(false);
-                log::info!("sound: audio device open");
-                for data in rx {
-                    match rodio::Decoder::new(std::io::Cursor::new(data)) {
-                        Ok(source) => sink.mixer().add(source),
-                        Err(e) => log::error!("sound: cannot decode: {e}"),
-                    }
-                }
-            });
+            let spawned = std::thread::Builder::new().name("audio".into()).spawn(move || output(rx));
             spawned.ok().map(|_| tx)
         })
         .as_ref()
+}
+
+/// The audio thread: plays each sound sent, mixed with those playing.
+#[cfg(not(target_os = "linux"))]
+fn output(rx: mpsc::Receiver<&'static [u8]>) {
+    let mut sink = match rodio::DeviceSinkBuilder::open_default_sink() {
+        Ok(s) => s,
+        Err(e) => {
+            log::warn!("no audio device, playing without sound: {e}");
+            return;
+        }
+    };
+    // rodio would print to the terminal, over the game
+    sink.log_on_drop(false);
+    log::info!("sound: audio device open");
+    for data in rx {
+        match rodio::Decoder::new(std::io::Cursor::new(data)) {
+            Ok(source) => sink.mixer().add(source),
+            Err(e) => log::error!("sound: cannot decode: {e}"),
+        }
+    }
+}
+
+#[cfg(target_os = "linux")]
+fn output(rx: mpsc::Receiver<&'static [u8]>) {
+    crate::alsa::play(rx);
 }
 
 /// `PlaySound`: start a sound, alongside any already playing.
