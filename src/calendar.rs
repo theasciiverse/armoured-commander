@@ -143,7 +143,7 @@ impl Game {
             }
         }
 
-        self.run_calendar();
+        self.run_calendar(false);
     }
 
     /// `ChooseCampaign`: the campaign files, reverse alphabetical by file
@@ -462,6 +462,7 @@ impl Game {
             return false;
         }
         self.campaign.over = true;
+        crate::save::delete();
         if !alive {
             self.popup("You are dead. Your campaign is over");
         } else {
@@ -594,6 +595,7 @@ impl Game {
                 self.popup("You have survived and reached the end of the campaign! Congratulations!");
                 self.campaign.over = true;
                 self.add_high_score();
+                crate::save::delete();
                 self.write_journal("Campaign Over: End of campaign calendar");
                 self.record_journal();
                 self.show_campaign_stats();
@@ -728,15 +730,44 @@ impl Game {
                 c.print_ex(CAL_MAP_X + 1, y + 1, Align::Left, &format!("[{}]witch to New Tank", hl("S")));
             }
         }
-        c.print_ex(CAL_MAP_X + 30, y + 1, Align::Left, &format!("[{}]uit (no saved games yet)", hl("Q")));
+        c.print_ex(CAL_MAP_X + 30, y + 1, Align::Left, &format!("Save and [{}]uit", hl("Q")));
         self.blit_con();
         self.flush();
     }
 
     /// `RunCalendar`: the calendar between days of action, until the
-    /// campaign ends or the player quits.
-    pub fn run_calendar(&mut self) {
-        self.save_game();
+    /// campaign ends or the player quits; with `load`, the saved game,
+    /// carrying on any day of action it was saved in.
+    pub fn run_calendar(&mut self, load: bool) {
+        if load {
+            if let Err(e) = self.load_game() {
+                log::error!("could not load the saved game: {e}");
+                self.popup(&format!("The saved game could not be loaded: {e}"));
+                return;
+            }
+            self.resume_loaded();
+        } else {
+            self.save_game();
+            self.calendar_loop();
+        }
+    }
+
+    /// After loading: finish any day of action the game was saved in, then
+    /// the calendar.
+    pub fn resume_loaded(&mut self) {
+        if self.campaign.day_in_progress {
+            self.init_campaign_day(true);
+            if self.campaign.exiting {
+                return;
+            }
+            self.campaign.day_in_progress = false;
+            self.check_player_tank();
+            self.campaign.action_day = false;
+        }
+        self.calendar_loop();
+    }
+
+    fn calendar_loop(&mut self) {
         let campaign_map = (!self.campaign.map_file.is_empty())
             .then(|| crate::xp::by_name(&self.campaign.map_file))
             .flatten()
@@ -776,11 +807,8 @@ impl Game {
             }
 
             if kc == 'q' {
-                let text = "Saved games are not ported yet, so quitting now ends this campaign. Quit anyway?";
-                if self.popup_confirm(text) {
-                    self.save_game();
-                    return;
-                }
+                self.save_game();
+                return;
             } else if kc == 'v' {
                 self.campaign.resupply = true;
                 self.campaign_view_tank(false);
@@ -793,7 +821,7 @@ impl Game {
                 }
             } else if kc == 'b' && self.campaign.action_day {
                 self.campaign.tank_on_offer = String::new();
-                self.init_campaign_day();
+                self.init_campaign_day(false);
                 if self.campaign.exiting {
                     return;
                 }
@@ -863,6 +891,54 @@ mod tests {
                 c.campaign_journal.iter().rev().find(|l| l.starts_with("Campaign Over")).map_or("", |l| l.as_str()),
             );
         }
+    }
+
+    /// Saves taken all through headless campaigns (on the calendar, during
+    /// days, in the middle of battles) load into a fresh game and play on
+    /// to the end.
+    #[test]
+    fn saved_games_load_and_play_on() {
+        let mut checked = (0, 0, 0);
+        for seed in 1..=3u64 {
+            let mut g = Game::new(Screen::headless(), Rng::new(seed * 7_368_787));
+            g.campaign.animations = false;
+            g.campaign.pause_labels = false;
+            g.test_saves = Some(Vec::new());
+            g.new_campaign();
+            let saves = g.test_saves.take().unwrap();
+            assert!(!saves.is_empty());
+            // the first of each kind: in battle, during a day, on the calendar
+            let kind = |text: &str| {
+                let (c, _, b) = crate::save::from_str(text).unwrap();
+                if b.is_some() { 0 } else if c.day_in_progress { 1 } else { 2 }
+            };
+            let mut picks = Vec::new();
+            for k in 0..3 {
+                if let Some(n) = saves.iter().position(|t| kind(t) == k) {
+                    picks.push(n);
+                }
+            }
+            for n in picks {
+                let text = &saves[n];
+                let (campaign, tank, battle) = crate::save::from_str(text).unwrap_or_else(|e| panic!("seed {seed} save {n}: {e}"));
+                if battle.is_some() {
+                    checked.0 += 1;
+                } else if campaign.day_in_progress {
+                    checked.1 += 1;
+                } else {
+                    checked.2 += 1;
+                }
+                let mut h = Game::new(Screen::headless(), Rng::new(seed + n as u64));
+                h.restore(campaign, tank, battle).unwrap();
+                // what was saved comes back the same
+                let again = crate::save::to_string(&h.save_info(), &h.campaign, &h.tank, &h.battle).unwrap();
+                assert_eq!(&again, text, "seed {seed} save {n} changed on loading");
+                h.resume_loaded();
+                assert!(h.campaign.over, "seed {seed} save {n}: campaign left unfinished");
+            }
+        }
+        eprintln!("loaded and played on: {} in battle, {} during a day, {} on the calendar", checked.0, checked.1, checked.2);
+        assert!(checked.0 > 0 && checked.1 > 0 && checked.2 > 0, "{checked:?}");
     }
 
     #[test]

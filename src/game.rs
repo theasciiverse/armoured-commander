@@ -83,6 +83,9 @@ pub struct Game {
     pub campaign: Campaign,
     pub tank: PlayerTank,
     pub battle: Option<Battle>,
+
+    /// Every save, kept in memory for tests that load them again.
+    pub test_saves: Option<Vec<String>>,
 }
 
 /// `CreateConsole`
@@ -124,6 +127,7 @@ impl Game {
             campaign: Campaign::new(),
             tank: PlayerTank::new(None),
             battle: None,
+            test_saves: None,
         }
     }
 

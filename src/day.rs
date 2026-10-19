@@ -961,8 +961,7 @@ impl Game {
     }
 
     /// `CampaignMenu`: the day's VP and how it ended; true if the player
-    /// chose to quit to the main menu. Saved games are not ported yet, so
-    /// quitting ends the campaign, and the menu says so.
+    /// chose to save and quit to the main menu.
     pub fn campaign_menu(&mut self) -> bool {
         self.darken_screen();
         let m = &mut self.menu_con;
@@ -976,7 +975,7 @@ impl Game {
             m.print_ex(MENU_CON_XM, 4, Align::Center, &format!("[{}] Return to Campaign Calendar", hl("ESC")));
         } else {
             m.print_ex(MENU_CON_XM, 4, Align::Center, &format!("[{}] Return to Game", hl("ESC")));
-            m.print_ex(MENU_CON_XM, 5, Align::Center, &format!("[{}] Quit to Main Menu (no saved games yet)", hl("Q")));
+            m.print_ex(MENU_CON_XM, 5, Align::Center, &format!("[{}] Save Game, Return to Main Menu", hl("Q")));
         }
         m.print_ex(MENU_CON_XM, 8, Align::Center, &format!("VP Today: {}", c.day_vp));
         m.print_ex(MENU_CON_XM, 9, Align::Center, &format!("Campaign VP: {}", c.day_vp + c.vp));
@@ -1002,11 +1001,7 @@ impl Game {
                 break;
             }
             if !self.campaign.sunset && self.tank.alive && self.key_char().eq_ignore_ascii_case(&'q') {
-                let text = "Saved games are not ported yet, so quitting now ends this campaign. Quit anyway?";
-                if self.popup_ex(text, true, true) {
-                    return true;
-                }
-                self.blit_menu();
+                return true;
             }
             self.flush();
         }
@@ -1018,7 +1013,34 @@ impl Game {
 
     /// `InitCampaignDay`: the morning briefing, the drive to the start
     /// area, today's map, then the day itself.
-    pub fn init_campaign_day(&mut self) {
+    pub fn init_campaign_day(&mut self, load: bool) {
+        if load {
+            if self.campaign.selected_crew.is_some() {
+                self.campaign.selected_crew = Some(0);
+            }
+            self.campaign.exiting = false;
+            self.paint_campaign_map();
+            self.update_c_action_con();
+            self.con.clear();
+        } else {
+            self.start_campaign_day();
+        }
+
+        self.do_campaign_day();
+
+        if self.campaign.sunset {
+            let c = &mut self.campaign;
+            c.vp += c.day_vp;
+            if c.day_vp > c.record_day_vp {
+                c.record_day_vp = c.day_vp;
+            }
+            c.day_vp = 0;
+            c.day_in_progress = false;
+        }
+    }
+
+    /// The new day's half of `InitCampaignDay`.
+    fn start_campaign_day(&mut self) {
         self.campaign.add_stat("Days of Combat", 1);
         self.reset_for_new_day();
         self.campaign.day_in_progress = true;
@@ -1085,18 +1107,6 @@ impl Game {
             self.render_campaign(false);
         }
         self.save_game();
-
-        self.do_campaign_day();
-
-        if self.campaign.sunset {
-            let c = &mut self.campaign;
-            c.vp += c.day_vp;
-            if c.day_vp > c.record_day_vp {
-                c.record_day_vp = c.day_vp;
-            }
-            c.day_vp = 0;
-            c.day_in_progress = false;
-        }
     }
 
     /// `DoCampaignDay`: the day's input loop, until sunset or the player
@@ -1104,10 +1114,19 @@ impl Game {
     pub fn do_campaign_day(&mut self) {
         let p = self.campaign.day_map().player_node;
         self.move_view_to(Some(p));
-        self.update_date_con();
-        self.update_c_action_con();
-        self.update_c_overlay(None);
-        self.render_campaign(false);
+        if self.battle.is_some() {
+            // a saved game from the middle of a battle
+            self.init_encounter(true, false);
+            if self.campaign.exiting {
+                return;
+            }
+            self.post_encounter(false);
+        } else {
+            self.update_date_con();
+            self.update_c_action_con();
+            self.update_c_overlay(None);
+            self.render_campaign(false);
+        }
 
         let mut steps = 0;
         loop {

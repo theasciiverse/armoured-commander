@@ -20,6 +20,7 @@ mod glyph;
 mod layout;
 mod model;
 mod rng;
+mod save;
 mod screens;
 mod tank;
 mod title;
@@ -39,7 +40,7 @@ const HELP: &str = "armcom [--art | --encounter [advance|battle|counterattack]]
 
 Armoured Commander, the World War II tank commander roguelike by Gregory
 Adam Scott, on its way to the terminal. New Campaign plays a whole
-campaign; there are no saved games yet, and no sound.
+campaign, saved as it goes (Continue picks it up); no sound yet.
 
   --art        browse the game's REXPaint art (tank diagrams, campaign maps);
                left/right to change picture, q to quit
@@ -189,7 +190,14 @@ fn run(mut terminal: ratatui::DefaultTerminal, mut mode: Mode, rng: &mut Rng) ->
                     Some(Choice::Quit) => return Ok(()),
                     Some(Choice::NewCampaign) => {
                         log::info!("switch: new campaign");
-                        terminal = play_campaign(terminal)?;
+                        terminal = play_campaign(terminal, false)?;
+                        mode = Mode::Menu(Box::new(MainMenu::new(rng)));
+                        log::info!("switch: menu");
+                        continue;
+                    }
+                    Some(Choice::Continue) => {
+                        log::info!("switch: continue campaign");
+                        terminal = play_campaign(terminal, true)?;
                         mode = Mode::Menu(Box::new(MainMenu::new(rng)));
                         log::info!("switch: menu");
                         continue;
@@ -239,12 +247,17 @@ fn run(mut terminal: ratatui::DefaultTerminal, mut mode: Mode, rng: &mut Rng) ->
     }
 }
 
-/// A new campaign, from the main menu until it ends or the player quits;
-/// the terminal is the campaign's while it runs, with the mouse on.
-fn play_campaign(terminal: ratatui::DefaultTerminal) -> io::Result<ratatui::DefaultTerminal> {
+/// A new campaign, or the saved one, from the main menu until it ends or
+/// the player quits; the terminal is the campaign's while it runs, with
+/// the mouse on.
+fn play_campaign(terminal: ratatui::DefaultTerminal, load: bool) -> io::Result<ratatui::DefaultTerminal> {
     let _ = ratatui::crossterm::execute!(io::stdout(), event::EnableMouseCapture);
     let mut game = Game::new(Screen::new(Some(terminal)), Rng::from_clock());
-    game.new_campaign();
+    if load {
+        game.run_calendar(true);
+    } else {
+        game.new_campaign();
+    }
     let mut terminal = game.scr.into_terminal().expect("the campaign hands the terminal back");
     let _ = ratatui::crossterm::execute!(io::stdout(), event::DisableMouseCapture);
     terminal.clear()?;

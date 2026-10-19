@@ -17,8 +17,9 @@ campaign: choosing it and its settings, the crew and their skills (F3
 crew info too), the calendar with refits and tank offers, the day map
 with its actions, quests and random events, battles, crew replacement,
 awards and promotions, the end of the campaign with its high score and
-journal file. Not yet: saves (so quitting ends a campaign, and the game
-says so), sound, the main menu at 100x30 (still 149x61).
+journal file. Saved games (2026-10-19): saved at the original's points,
+including mid-battle, and picked up again by Continue on the main menu.
+Not yet: sound, the main menu at 100x30 (still 149x61), its tombstone.
 
 ## Source and licence
 
@@ -82,6 +83,14 @@ line. Only `present` in `main.rs` knows about the terminal.
   time, enemy advances, random events, sunset). F3 crew info and skills
   are in `src/screens.rs`. `main.rs` lends the terminal to a `Game` for
   the length of a campaign and takes it back for the menu.
+- `src/save.rs`: the saved game, `savegame.json` in the data folder: the
+  campaign, tank and battle as serde JSON (the original shelved the same
+  three objects), with `SavedGameInfo` for the main menu. What the
+  campaign file provides (calendar, ranks, activation tables) is not
+  saved but read again on loading, as `LoadGame` does. `save::FORMAT` is
+  bumped whenever the saved state changes shape; the menu then says the
+  save cannot be loaded instead of loading it wrong. One save at a time,
+  deleted when the campaign ends, as in the original.
 
 `armcom --art` browses the art; `RUST_LOG=debug armcom 2>armcom.log` logs
 every key, mode change and a state line each second.
@@ -175,17 +184,21 @@ from New Campaign to the end of the calendar or the commander's death
 (random campaign, settings and start date; `ARMCOM_CAMPAIGNS=80 cargo
 test --release campaigns` for more, about 35 seconds). All must finish
 without a panic. Both campaigns' day maps are checked for a way from
-start to exit.
+start to exit. Saves taken during headless campaigns (one in a battle,
+one during a day, one on the calendar, per campaign) must load back
+unchanged and play on to the end. The release build runs it all in
+about 10 seconds; debug takes about two minutes.
 
 ## Order of work
 
 1. Done: console layer, glyphs, art, main menu.
 2. Done: terminal layout agreed (see Screen size).
 3. Done: the data, the encounter, the campaign, the info windows.
-4. Next: saves (the campaign and calendar menus say there are none yet),
-   the main menu at 100x30, sound. The bones file already keeps high
-   scores, the graveyard and tutorial flags; journals are written to the
-   data folder at the end of a campaign.
+4. Done: saves. Next: the main menu at 100x30 with its tombstone, then
+   sound. The bones file already keeps high scores, the graveyard and
+   tutorial flags; journals are written to the data folder at the end of
+   a campaign.
+5. Then Armoured Commander II (David, 2026-10-19), reusing what applies.
 
 ## House conventions
 

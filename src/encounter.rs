@@ -814,10 +814,54 @@ impl Game {
         self.render_encounter(false);
     }
 
-    /// `SaveGame`. Not ported yet: there is no saved game, so Q in the
-    /// encounter menu quits without one.
+    /// `SaveGame`: the campaign, tank and battle as they stand; not once
+    /// the campaign is over.
     pub fn save_game(&mut self) {
-        log::debug!("save_game: not ported yet");
+        if self.campaign.over {
+            return;
+        }
+        crate::save::write(&self.save_info(), &self.campaign, &self.tank, &self.battle);
+        if self.test_saves.is_some() {
+            if let Ok(text) = crate::save::to_string(&self.save_info(), &self.campaign, &self.tank, &self.battle) {
+                self.test_saves.as_mut().expect("test saves").push(text);
+            }
+        }
+    }
+
+    /// `SavedGameInfo` for the game as it stands.
+    pub fn save_info(&self) -> crate::save::Info {
+        let commander = self.crew_pos("Commander").map(|c| self.crew(c).name.clone()).unwrap_or_default();
+        crate::save::Info {
+            format: crate::save::FORMAT,
+            game_version: VERSION.into(),
+            campaign_name: self.campaign.campaign_name.clone(),
+            commander_name: commander,
+            tank_name: self.tank.name.clone(),
+            current_date: self.campaign.get_date(None),
+        }
+    }
+
+    /// `LoadGame`: the saved campaign, tank and battle, with the campaign
+    /// file read again (`LoadCampaignInfo`).
+    pub fn load_game(&mut self) -> Result<(), String> {
+        let (campaign, tank, battle) = crate::save::load()?;
+        self.restore(campaign, tank, battle)
+    }
+
+    pub fn restore(&mut self, campaign: Campaign, tank: PlayerTank, battle: Option<Battle>) -> Result<(), String> {
+        let file = campaign.campaign_file.clone();
+        let def = defs::CAMPAIGN_FILES
+            .iter()
+            .find(|(f, _)| *f == file)
+            .ok_or_else(|| format!("unknown campaign file {file}"))
+            .and_then(|(_, xml)| defs::load_campaign(xml))?;
+        self.campaign = campaign;
+        self.campaign.load_info(&def);
+        self.campaign.exiting = false;
+        self.tank = tank;
+        self.battle = battle;
+        log::info!("loaded: {} on {}", self.campaign.campaign_name, self.campaign.get_date(None));
+        Ok(())
     }
 
     /// The encounter's own debug start (`armcom --encounter`): a crew, a

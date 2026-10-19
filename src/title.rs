@@ -1,7 +1,7 @@
 //! The main menu (`MainMenu` in armcom.py): a sunset sky, clouds and hills
 //! scrolling past the title, the menu, and the poppy. Ported line for
-//! line; the bones file and saved game are not ported yet, so there is no
-//! tombstone and no Continue.
+//! line, with Continue for the saved game; the tombstone from the bones
+//! file is not ported yet.
 
 use crate::color::{self, Color};
 use crate::console::{Align, COLCTRL_1, Console};
@@ -59,6 +59,7 @@ const TITLE: [&[i32]; 25] = [
 ];
 
 pub enum Choice {
+    Continue,
     NewCampaign,
     HighScores,
     Credits,
@@ -78,6 +79,11 @@ pub struct MainMenu {
     ground_height: i32,
     ground_click: Instant,
     cloud_click: Instant,
+    /// The saved game's summary, or why it cannot be loaded.
+    saved: Option<Result<crate::save::Info, String>>,
+    /// New Campaign was pressed with a saved game: asking whether to
+    /// replace it.
+    confirm_new: bool,
 }
 
 impl MainMenu {
@@ -137,6 +143,8 @@ impl MainMenu {
             ground_height: 0,
             ground_click: Instant::now(),
             cloud_click: Instant::now(),
+            saved: crate::save::peek(),
+            confirm_new: false,
         };
         for _ in 0..SCREEN_WIDTH {
             menu.update_cloud_layer(rng);
@@ -205,6 +213,30 @@ impl MainMenu {
         con.align = Align::Center;
         con.print(SCREEN_XM, 33, "The World War II Tank Commander Roguelike");
 
+        if let Some(saved) = &self.saved {
+            con.print(SCREEN_XM, 36, &format!("[{HL_ON}C{HL_OFF}]ontinue Campaign:"));
+            match saved {
+                Ok(info) => {
+                    con.fg = color::LIGHT_GREY;
+                    for (n, line) in [&info.campaign_name, &info.commander_name, &info.tank_name, &info.current_date].iter().enumerate() {
+                        con.print(SCREEN_XM, 38 + n as i32, line);
+                    }
+                }
+                Err(e) => {
+                    con.fg = color::LIGHT_RED;
+                    con.print(SCREEN_XM, 38, "The saved game cannot be loaded:");
+                    con.print(SCREEN_XM, 39, e);
+                }
+            }
+            con.fg = color::WHITE;
+        }
+        if self.confirm_new {
+            con.fg = color::LIGHT_RED;
+            con.print(SCREEN_XM, 48, "Starting a new campaign will erase the currently saved one in progress.");
+            con.fg = color::WHITE;
+            con.print(SCREEN_XM, 49, &format!("Are you sure? [{HL_ON}y{HL_OFF}] or [{HL_ON}N{HL_OFF}]"));
+        }
+
         con.print(SCREEN_XM, 43, &format!("[{HL_ON}N{HL_OFF}]ew Campaign"));
         con.print(SCREEN_XM, 44, &format!("[{HL_ON}H{HL_OFF}]igh Scores"));
         con.print(SCREEN_XM, 45, &format!("[{HL_ON}V{HL_OFF}]iew Credits"));
@@ -251,8 +283,22 @@ impl MainMenu {
         moved
     }
 
-    pub fn key(&self, c: char) -> Option<Choice> {
-        match c.to_ascii_lowercase() {
+    pub fn key(&mut self, c: char) -> Option<Choice> {
+        let c = c.to_ascii_lowercase();
+        if self.confirm_new {
+            self.confirm_new = false;
+            self.draw_menu();
+            self.draw_layers();
+            return (c == 'y').then_some(Choice::NewCampaign);
+        }
+        match c {
+            'c' if self.saved.as_ref().is_some_and(|s| s.is_ok()) => Some(Choice::Continue),
+            'n' if self.saved.is_some() => {
+                self.confirm_new = true;
+                self.draw_menu();
+                self.draw_layers();
+                None
+            }
             'n' => Some(Choice::NewCampaign),
             'h' => Some(Choice::HighScores),
             'v' => Some(Choice::Credits),

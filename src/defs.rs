@@ -4,7 +4,7 @@
 //! `LoadCampaignInfo`'s rules. All of it is built into the binary.
 
 use crate::color::Color;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::sync::OnceLock;
 
 #[derive(Deserialize, Debug, Clone)]
@@ -17,7 +17,7 @@ pub struct CrewSkill {
     pub levels: Vec<i32>,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct CrewOrder {
     pub name: String,
     pub desc: String,
@@ -111,7 +111,7 @@ impl Defs {
 /// A vehicle stat value as the original writes them: a string, a number
 /// or a list of numbers (`rarity`). `Bool` is what `SetVehicleStats` turns
 /// an empty-string flag into.
-#[derive(Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum Stat {
     Bool(bool),
@@ -123,7 +123,7 @@ pub enum Stat {
 /// A unit's stats dictionary, in the original's order. Some stats are
 /// flags that only matter by being present (`'HVSS' in stats`), so this
 /// stays a keyed list rather than a struct.
-#[derive(Deserialize, Debug, Clone, Default, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq)]
 #[serde(transparent)]
 pub struct Stats(Vec<(String, Stat)>);
 

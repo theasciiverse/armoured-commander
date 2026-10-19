@@ -9,6 +9,7 @@
 //! `day_map.nodes`. The crew's `next`/`prev` ring is the crew list itself.
 
 use crate::defs::{self, CrewOrder, Stats};
+use serde::{Deserialize, Serialize};
 use std::collections::{BTreeSet, HashMap};
 
 pub const AMMO_TYPES: [&str; 6] = ["HE", "AP", "WP", "HCBI", "HVAP", "APDS"];
@@ -16,7 +17,7 @@ pub const AMMO_TYPES: [&str; 6] = ["HE", "AP", "WP", "HCBI", "HVAP", "APDS"];
 /// Main gun shells by type. The original keeps a dict holding only the
 /// types the gun fires (`'WP' in tank.general_ammo`), so a missing type
 /// is `None`.
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct Ammo([Option<i32>; 6]);
 
 impl Ammo {
@@ -52,7 +53,7 @@ impl Ammo {
 }
 
 /// `Weather`
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Weather {
     pub clouds: String,
     pub fog: bool,
@@ -78,7 +79,7 @@ impl Default for Weather {
 }
 
 /// `MapNode`: one area of the campaign day map.
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct MapNode {
     pub x: i32,
     pub y: i32,
@@ -126,25 +127,26 @@ impl MapNode {
 }
 
 /// `CampaignDayMap`
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct CampaignDayMap {
     pub seed: u64,
     pub nodes: Vec<MapNode>,
     pub blocked_nodes: BTreeSet<usize>,
     /// Which node each map cell belongs to.
+    #[serde(with = "cell_map")]
     pub char_locations: HashMap<(i32, i32), usize>,
     pub player_node: usize,
 }
 
 /// `SkillRecord`
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SkillRecord {
     pub name: String,
     pub level: i32,
 }
 
 /// `MainGunHit`
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct MainGunHit {
     pub gun_calibre: String,
     pub ammo_type: String,
@@ -153,7 +155,7 @@ pub struct MainGunHit {
 }
 
 /// `MapHex`: x and y are where it is drawn on the map console.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct MapHex {
     pub hx: i32,
     pub hy: i32,
@@ -165,7 +167,7 @@ pub struct MapHex {
 }
 
 /// `SmokeFactor`
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SmokeFactor {
     pub hx: i32,
     pub hy: i32,
@@ -193,19 +195,28 @@ impl SmokeFactor {
 
 /// `Campaign`. Fields the original adds in `ResetForNewDay` are here from
 /// the start.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Campaign {
     pub campaign_name: String,
     pub campaign_file: String,
     pub player_nation: String,
     pub enemy_nation: String,
     pub map_file: String,
+    // what `load_info` reads from the campaign file is read again on
+    // loading a saved game, as `LoadGame` does, rather than saved
+    #[serde(skip)]
     pub player_veh_list: Vec<String>,
+    #[serde(skip)]
     pub mission_activations: Vec<Vec<(String, i32)>>,
+    #[serde(skip)]
     pub activation_modifiers: Vec<defs::ActivationModifier>,
+    #[serde(skip)]
     pub class_activations: Vec<(String, Vec<(String, i32)>)>,
+    #[serde(skip)]
     pub ranks: Vec<defs::Rank>,
+    #[serde(skip)]
     pub decorations: Vec<defs::Decoration>,
+    #[serde(skip)]
     pub days: Vec<defs::Day>,
     pub over: bool,
     pub exiting: bool,
@@ -488,7 +499,7 @@ impl Campaign {
 }
 
 /// `PlayerTank`
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PlayerTank {
     pub unit_type: String,
     pub unit_class: String,
@@ -641,7 +652,7 @@ impl PlayerTank {
 }
 
 /// `Crewman`
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Crewman {
     pub name: String,
     pub nickname: String,
@@ -741,7 +752,7 @@ impl Crewman {
 }
 
 /// `EnemyUnit`
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct EnemyUnit {
     pub alive: bool,
     pub map_hex: usize,
@@ -815,7 +826,7 @@ impl EnemyUnit {
 }
 
 /// `Battle`
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Battle {
     pub maphexes: Vec<MapHex>,
     pub smoke_factors: Vec<SmokeFactor>,
@@ -897,7 +908,7 @@ impl Battle {
 }
 
 /// `RollAction`: what the to-hit and to-kill windows show.
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct RollAction {
     pub attacker_unit_type: String,
     pub attacker: String,
@@ -994,6 +1005,23 @@ pub fn get_time_until(h1: i32, m1: i32, h2: i32, m2: i32) -> (i32, i32) {
         m2 - m1
     };
     (hours, minutes)
+}
+
+/// The day map's cell owners as a list of pairs: JSON keys can only be
+/// strings.
+mod cell_map {
+    use serde::{Deserialize, Deserializer, Serialize, Serializer};
+    use std::collections::HashMap;
+
+    pub fn serialize<S: Serializer>(map: &HashMap<(i32, i32), usize>, s: S) -> Result<S::Ok, S::Error> {
+        let mut pairs: Vec<(&(i32, i32), &usize)> = map.iter().collect();
+        pairs.sort();
+        pairs.serialize(s)
+    }
+
+    pub fn deserialize<'de, D: Deserializer<'de>>(d: D) -> Result<HashMap<(i32, i32), usize>, D::Error> {
+        Ok(Vec::<((i32, i32), usize)>::deserialize(d)?.into_iter().collect())
+    }
 }
 
 #[cfg(test)]
