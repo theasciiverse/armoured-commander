@@ -98,7 +98,10 @@ fn main() -> io::Result<()> {
     let mode = if args.iter().any(|a| a == "--art") {
         art(0)
     } else {
+        {
+        fit_screen();
         Mode::Menu(Box::new(MainMenu::new(&mut rng)))
+    }
     };
     log::info!("start: {}", mode.name());
 
@@ -176,6 +179,12 @@ fn run(mut terminal: ratatui::DefaultTerminal, mut mode: Mode, rng: &mut Rng) ->
         }
         let ev = event::read()?;
         log::debug!("input: {ev:?}");
+        if let Event::Resize(..) = ev {
+            if let Mode::Menu(_) = mode {
+                mode = main_menu(rng);
+            }
+            continue;
+        }
         let Event::Key(key) = ev else { continue };
         if key.kind != KeyEventKind::Press {
             continue;
@@ -191,14 +200,14 @@ fn run(mut terminal: ratatui::DefaultTerminal, mut mode: Mode, rng: &mut Rng) ->
                     Some(Choice::NewCampaign) => {
                         log::info!("switch: new campaign");
                         terminal = play_campaign(terminal, false)?;
-                        mode = Mode::Menu(Box::new(MainMenu::new(rng)));
+                        mode = main_menu(rng);
                         log::info!("switch: menu");
                         continue;
                     }
                     Some(Choice::Continue) => {
                         log::info!("switch: continue campaign");
                         terminal = play_campaign(terminal, true)?;
-                        mode = Mode::Menu(Box::new(MainMenu::new(rng)));
+                        mode = main_menu(rng);
                         log::info!("switch: menu");
                         continue;
                     }
@@ -220,13 +229,13 @@ fn run(mut terminal: ratatui::DefaultTerminal, mut mode: Mode, rng: &mut Rng) ->
             }
             Mode::Scores(_) => {
                 if key.code == KeyCode::Enter {
-                    mode = Mode::Menu(Box::new(MainMenu::new(rng)));
+                    mode = main_menu(rng);
                     log::info!("switch: menu");
                 }
             }
             Mode::Credits(c) => match key.code {
                 KeyCode::Enter | KeyCode::Esc => {
-                    mode = Mode::Menu(Box::new(MainMenu::new(rng)));
+                    mode = main_menu(rng);
                     log::info!("switch: menu");
                 }
                 KeyCode::Char('p') | KeyCode::Char('P') => c.toggle_pause(),
@@ -262,4 +271,17 @@ fn play_campaign(terminal: ratatui::DefaultTerminal, load: bool) -> io::Result<r
     let _ = ratatui::crossterm::execute!(io::stdout(), event::DisableMouseCapture);
     terminal.clear()?;
     Ok(terminal)
+}
+
+/// The screen size from the terminal's (`layout` keeps it).
+fn fit_screen() {
+    if let Ok((w, h)) = ratatui::crossterm::terminal::size() {
+        layout::set_screen_size(w as i32, h as i32);
+    }
+}
+
+/// The main menu, laid out for the terminal as it is now.
+fn main_menu(rng: &mut Rng) -> Mode {
+    fit_screen();
+    Mode::Menu(Box::new(MainMenu::new(rng)))
 }

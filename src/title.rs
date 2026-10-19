@@ -1,16 +1,21 @@
 //! The main menu (`MainMenu` in armcom.py): a sunset sky, clouds and hills
-//! scrolling past the title, the menu, and the poppy. Ported line for
-//! line, with Continue for the saved game; the tombstone from the bones
-//! file is not ported yet.
+//! scrolling past the title, the menu, the poppy and a tombstone from the
+//! bones file. Ported line for line, laid out for the terminal's size: the
+//! 30-row scene is drawn in half blocks at the height there is room for
+//! (15 rows at 100x30, its own 30 from 45 rows up), the text below it.
 
 use crate::color::{self, Color};
 use crate::console::{Align, COLCTRL_1, Console};
+use crate::layout::{sh, sw};
 use crate::rng::Rng;
 use std::time::{Duration, Instant};
 
-pub const SCREEN_WIDTH: i32 = 149;
-pub const SCREEN_HEIGHT: i32 = 61;
-const SCREEN_XM: i32 = SCREEN_WIDTH / 2;
+/// The original's screen width, beside which the tombstone stood 30
+/// columns in from the right.
+const SCREEN_WIDTH: i32 = 149;
+/// The scene's height in the original, its rows as the clouds and ground
+/// move in them.
+const SCENE_H: i32 = 30;
 
 const VERSION: &str = "1.0";
 const SUBVERSION: &str = "9";
@@ -68,10 +73,17 @@ pub enum Choice {
 
 pub struct MainMenu {
     pub con: Console,
+    /// The screen's size when the menu was made; the menu is made again
+    /// when the terminal is resized.
+    w: i32,
+    h: i32,
     background: Console,
     title: Console,
     clouds: Console,
     ground: Console,
+    /// The sky, clouds, ground and title put together, 30 rows tall as in
+    /// the original, before it is drawn to the screen at its height.
+    scene: Console,
     cloud_altitude: i32,
     cloud_height: i32,
     cloud_length: i32,
@@ -84,17 +96,26 @@ pub struct MainMenu {
     /// New Campaign was pressed with a saved game: asking whether to
     /// replace it.
     confirm_new: bool,
+    /// `GetRandomGrave`: a fallen crewman from the bones file's graveyard.
+    tombstone: Option<[String; 5]>,
 }
 
+/// Rows of text under the scene: the tagline, the saved game, the four
+/// choices, and the copyright lines.
+const TEXT_ROWS: i32 = 15;
+
 impl MainMenu {
+    /// The menu for a screen of the size `layout` holds.
     pub fn new(rng: &mut Rng) -> Self {
+        let (w, h) = (sw(), sh());
+
         // the sunset sky
-        let mut background = Console::new(149, 30);
+        let mut background = Console::new(w, SCENE_H);
         let color1 = Color(255, 255, 114);
         let color2 = Color(193, 8, 3);
-        for y in 0..30 {
-            background.bg = color::lerp(color1, color2, y as f32 / 30.0);
-            background.rect(0, y, 149, 1, false);
+        for y in 0..SCENE_H {
+            background.bg = color::lerp(color1, color2, y as f32 / SCENE_H as f32);
+            background.rect(0, y, w, 1, false);
         }
 
         // "ARMOURED COMMANDER"
@@ -115,27 +136,33 @@ impl MainMenu {
             }
         }
 
-        let mut clouds = Console::new(SCREEN_WIDTH, 30);
+        let mut clouds = Console::new(w, SCENE_H);
         clouds.bg = KEY_COLOR;
         clouds.clear();
         clouds.key = Some(KEY_COLOR);
         clouds.bg = color::WHITE;
 
-        let mut ground = Console::new(SCREEN_WIDTH, 30);
+        let mut ground = Console::new(w, SCENE_H);
         ground.bg = KEY_COLOR;
         ground.clear();
         ground.bg = TITLE_GROUND_COLOR;
         ground.key = Some(KEY_COLOR);
 
-        let mut con = Console::new(SCREEN_WIDTH, SCREEN_HEIGHT);
+        let mut con = Console::new(w, h);
         con.set_color_control(COLCTRL_1, KEY_HIGHLIGHT_COLOR, color::BLACK);
+
+        let graveyard = crate::bones::load().graveyard;
+        let tombstone = (!graveyard.is_empty()).then(|| rng.choice(&graveyard).clone());
 
         let mut menu = MainMenu {
             con,
+            w,
+            h,
             background,
             title,
             clouds,
             ground,
+            scene: Console::new(w, SCENE_H),
             cloud_altitude: 0,
             cloud_height: 0,
             cloud_length: 0,
@@ -145,13 +172,14 @@ impl MainMenu {
             cloud_click: Instant::now(),
             saved: crate::save::peek(),
             confirm_new: false,
+            tombstone,
         };
-        for _ in 0..SCREEN_WIDTH {
+        for _ in 0..w {
             menu.update_cloud_layer(rng);
         }
         menu.ground_height = rng.int(3, 8);
-        for x in 0..SCREEN_WIDTH {
-            menu.ground.rect(x, 30 - menu.ground_height, 1, menu.ground_height, false);
+        for x in 0..w {
+            menu.ground.rect(x, SCENE_H - menu.ground_height, 1, menu.ground_height, false);
             menu.ground_height = new_ground_height(rng, menu.ground_height);
         }
         menu.draw_menu();
@@ -162,12 +190,13 @@ impl MainMenu {
     /// `UpdateCloudLayer`: scroll the clouds one column left and draw the
     /// new right-hand column.
     fn update_cloud_layer(&mut self, rng: &mut Rng) {
+        let w = self.w;
         let c = &mut self.clouds;
         c.key = Some(color::BLACK);
-        c.blit_self(1, 0, SCREEN_WIDTH - 1, 30, 0, 0);
+        c.blit_self(1, 0, w - 1, SCENE_H, 0, 0);
         c.key = Some(KEY_COLOR);
         c.bg = KEY_COLOR;
-        c.rect(SCREEN_WIDTH - 1, 0, 1, 30, false);
+        c.rect(w - 1, 0, 1, SCENE_H, false);
         c.bg = color::WHITE;
 
         if self.c_cloud_length > 0 {
@@ -175,7 +204,7 @@ impl MainMenu {
             if self.c_cloud_length == self.cloud_length || self.c_cloud_length == 1 {
                 h -= 2;
             }
-            c.rect(SCREEN_WIDTH - 1, 30 - self.cloud_altitude - h / 2, 1, h, false);
+            c.rect(w - 1, SCENE_H - self.cloud_altitude - h / 2, 1, h, false);
             self.c_cloud_length -= 1;
         } else if rng.int(1, 14) == 1 {
             self.cloud_altitude = rng.int(10, 29);
@@ -186,82 +215,148 @@ impl MainMenu {
     }
 
     fn scroll_ground(&mut self, rng: &mut Rng) {
+        let w = self.w;
         let g = &mut self.ground;
         let gh = self.ground_height;
         g.key = Some(color::BLACK);
-        g.blit_self(1, 0, SCREEN_WIDTH - 1, 30, 0, 0);
+        g.blit_self(1, 0, w - 1, SCENE_H, 0, 0);
         g.key = Some(KEY_COLOR);
         g.bg = KEY_COLOR;
-        g.rect(SCREEN_WIDTH - 1, 0, 1, 30 - gh, false);
+        g.rect(w - 1, 0, 1, SCENE_H - gh, false);
         g.bg = TITLE_GROUND_COLOR;
-        g.rect(SCREEN_WIDTH - 1, 30 - gh, 1, gh, false);
+        g.rect(w - 1, SCENE_H - gh, 1, gh, false);
         self.ground_height = new_ground_height(rng, gh);
     }
 
-    /// `DrawLayers`.
+    /// The scene's height on the screen: its 30 rows as in the original
+    /// when there is room, and down to 15 (in half blocks) when not.
+    fn scene_rows(&self) -> i32 {
+        (self.h - TEXT_ROWS).clamp(SCENE_H / 2, SCENE_H)
+    }
+
+    /// `DrawLayers`: the scene, drawn at its height on the screen in half
+    /// blocks, each half sampled from the nearest of the scene's rows.
     fn draw_layers(&mut self) {
-        Console::blit(&self.background, 0, 0, 149, 30, &mut self.con, 0, 2);
-        Console::blit(&self.clouds, 0, 0, 149, 30, &mut self.con, 0, 2);
-        Console::blit(&self.ground, 0, 0, 149, 30, &mut self.con, 0, 2);
-        Console::blit(&self.title, 0, 0, 80, 25, &mut self.con, 34, 4);
+        let w = self.w;
+        let s = &mut self.scene;
+        Console::blit(&self.background, 0, 0, w, SCENE_H, s, 0, 0);
+        Console::blit(&self.clouds, 0, 0, w, SCENE_H, s, 0, 0);
+        Console::blit(&self.ground, 0, 0, w, SCENE_H, s, 0, 0);
+        Console::blit(&self.title, 0, 0, 80, 25, s, (w - 80) / 2, 2);
+
+        let rows = self.scene_rows();
+        for y in 0..rows {
+            for x in 0..w {
+                let upper = self.scene.char_bg(x, 2 * y * SCENE_H / (2 * rows));
+                let lower = self.scene.char_bg(x, (2 * y + 1) * SCENE_H / (2 * rows));
+                self.con.put_char_ex(x, y, 223, upper, lower);
+            }
+        }
+        if self.confirm_new {
+            self.draw_confirm();
+        }
     }
 
     fn draw_menu(&mut self) {
+        let (w, h) = (self.w, self.h);
+        let xm = w / 2;
+        let rows = self.scene_rows();
+        // spare rows go between the parts, as the original spaces them
+        let spare = h - rows - TEXT_ROWS;
+        let gap = if spare >= 4 { 1 } else { 0 };
         let con = &mut self.con;
         con.bg = color::BLACK;
         con.clear();
         con.align = Align::Center;
-        con.print(SCREEN_XM, 33, "The World War II Tank Commander Roguelike");
+        let mut y = rows + gap;
+        con.print(xm, y, "The World War II Tank Commander Roguelike");
+        y += 1 + gap;
 
         if let Some(saved) = &self.saved {
-            con.print(SCREEN_XM, 36, &format!("[{HL_ON}C{HL_OFF}]ontinue Campaign:"));
+            con.print(xm, y, &format!("[{HL_ON}C{HL_OFF}]ontinue Campaign:"));
+            y += 1;
             match saved {
                 Ok(info) => {
                     con.fg = color::LIGHT_GREY;
-                    for (n, line) in [&info.campaign_name, &info.commander_name, &info.tank_name, &info.current_date].iter().enumerate() {
-                        con.print(SCREEN_XM, 38 + n as i32, line);
+                    for line in [&info.campaign_name, &info.commander_name, &info.tank_name, &info.current_date] {
+                        con.print(xm, y, line);
+                        y += 1;
                     }
                 }
                 Err(e) => {
                     con.fg = color::LIGHT_RED;
-                    con.print(SCREEN_XM, 38, "The saved game cannot be loaded:");
-                    con.print(SCREEN_XM, 39, e);
+                    con.print(xm, y, "The saved game cannot be loaded:");
+                    con.print(xm, y + 1, e);
+                    y += 4;
                 }
             }
             con.fg = color::WHITE;
-        }
-        if self.confirm_new {
-            con.fg = color::LIGHT_RED;
-            con.print(SCREEN_XM, 48, "Starting a new campaign will erase the currently saved one in progress.");
-            con.fg = color::WHITE;
-            con.print(SCREEN_XM, 49, &format!("Are you sure? [{HL_ON}y{HL_OFF}] or [{HL_ON}N{HL_OFF}]"));
+            y += gap;
         }
 
-        con.print(SCREEN_XM, 43, &format!("[{HL_ON}N{HL_OFF}]ew Campaign"));
-        con.print(SCREEN_XM, 44, &format!("[{HL_ON}H{HL_OFF}]igh Scores"));
-        con.print(SCREEN_XM, 45, &format!("[{HL_ON}V{HL_OFF}]iew Credits"));
-        con.print(SCREEN_XM, 46, &format!("[{HL_ON}Q{HL_OFF}]uit"));
+        for text in ["[\u{1}N\u{8}]ew Campaign", "[\u{1}H\u{8}]igh Scores", "[\u{1}V\u{8}]iew Credits", "[\u{1}Q\u{8}]uit"] {
+            con.print(xm, y, text);
+            y += 1;
+        }
 
         con.fg = color::LIGHT_GREY;
-        con.print_ex(SCREEN_XM, SCREEN_HEIGHT - 7, Align::Center, &format!("version {VERSION}{SUBVERSION}"));
-        con.print_ex(SCREEN_XM, SCREEN_HEIGHT - 4, Align::Center, "Copyright 2015-2017 Gregory Adam Scott");
-        con.print_ex(SCREEN_XM, SCREEN_HEIGHT - 3, Align::Center, "Free Software under the GNU General Public License");
-        con.print_ex(SCREEN_XM, SCREEN_HEIGHT - 2, Align::Center, WEBSITE);
-        con.print_ex(SCREEN_XM, SCREEN_HEIGHT - 1, Align::Center, GITHUB);
+        con.print_ex(xm, h - 5, Align::Center, &format!("version {VERSION}{SUBVERSION}"));
+        con.print_ex(xm, h - 4, Align::Center, "Copyright 2015-2017 Gregory Adam Scott");
+        con.print_ex(xm, h - 3, Align::Center, "Free Software under the GNU General Public License");
+        con.print_ex(xm, h - 2, Align::Center, WEBSITE);
+        con.print_ex(xm, h - 1, Align::Center, GITHUB);
 
         // the poppy
         con.fg = color::RED;
         con.align = Align::Left;
-        con.print(4, SCREEN_HEIGHT - 6, ",--.");
-        con.print(3, SCREEN_HEIGHT - 5, ".\\  /.");
-        con.print(2, SCREEN_HEIGHT - 4, "(  ()  )");
-        con.print(3, SCREEN_HEIGHT - 3, "`/  \\'");
-        con.print(4, SCREEN_HEIGHT - 2, "`--'");
+        con.print(4, h - 6, ",--.");
+        con.print(3, h - 5, ".\\  /.");
+        con.print(2, h - 4, "(  ()  )");
+        con.print(3, h - 3, "`/  \\'");
+        con.print(4, h - 2, "`--'");
 
         con.fg = color::WHITE;
         con.align = Align::Center;
         let text = if is_armistice_day() { "NEVER AGAIN" } else { "In Memoriam" };
-        con.print(16, SCREEN_HEIGHT - 3, text);
+        con.print(16, h - 3, text);
+
+        // the tombstone, bottom right; closer to the edge on a narrow
+        // screen, clear of the copyright lines
+        if let Some(stone) = &self.tombstone {
+            let x0 = if w >= SCREEN_WIDTH { w - 30 } else { w - 21 };
+            con.bg = color::DARK_GREY;
+            con.fg = color::BLACK;
+            con.rect(x0 + 2, h - 10, 16, 1, false);
+            con.rect(x0 + 1, h - 9, 18, 1, false);
+            con.rect(x0, h - 8, 20, 8, false);
+            for (n, text) in stone.iter().enumerate() {
+                let text: String = text.chars().take(20).collect();
+                con.print_ex(x0 + 10, h - 8 + n as i32, Align::Center, &text);
+            }
+            con.bg = color::BLACK;
+            con.fg = color::WHITE;
+        }
+    }
+
+    /// The question before New Campaign replaces a saved game, in a box
+    /// over the scene, as the original's pop-up.
+    fn draw_confirm(&mut self) {
+        let lines = [
+            "Starting a new campaign will erase",
+            "the currently saved one in progress.",
+            "Are you sure?",
+            "",
+            "[\u{1}y\u{8}] or [\u{1}N\u{8}]",
+        ];
+        let (bw, bh) = (42, lines.len() as i32 + 4);
+        let (x, y) = ((self.w - bw) / 2, (self.scene_rows() - bh) / 2);
+        let con = &mut self.con;
+        con.fg = color::WHITE;
+        con.bg = color::BLACK;
+        con.frame(x, y, bw, bh, true, true);
+        for (n, line) in lines.iter().enumerate() {
+            con.print_ex(x + bw / 2, y + 2 + n as i32, Align::Center, line);
+        }
     }
 
     /// One pass of the menu loop's animation; true when something moved.
@@ -295,7 +390,6 @@ impl MainMenu {
             'c' if self.saved.as_ref().is_some_and(|s| s.is_ok()) => Some(Choice::Continue),
             'n' if self.saved.is_some() => {
                 self.confirm_new = true;
-                self.draw_menu();
                 self.draw_layers();
                 None
             }

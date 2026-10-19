@@ -19,7 +19,8 @@ with its actions, quests and random events, battles, crew replacement,
 awards and promotions, the end of the campaign with its high score and
 journal file. Saved games (2026-10-19): saved at the original's points,
 including mid-battle, and picked up again by Continue on the main menu.
-Not yet: sound, the main menu at 100x30 (still 149x61), its tombstone.
+The main menu (2026-10-19) is laid out for the terminal too, with its
+tombstone. Not yet: sound, bigger hexes on a big screen.
 
 ## Source and licence
 
@@ -73,8 +74,13 @@ line. Only `present` in `main.rs` knows about the terminal.
   campaign XML files are shipped unchanged and read by `LoadCampaignInfo`'s
   rules. One quirk kept: Patton's Best lists `M4A3E2(76)W Turret G`, which
   has no vehicle entry, so `GetRF` gives it rarity 0 and it is never offered.
-- `src/title.rs`: `MainMenu`, ported line for line (no bones file or saved
-  game yet, so no tombstone and no Continue).
+- `src/title.rs`: `MainMenu`, ported line for line, with Continue and a
+  tombstone from the graveyard. Its 30-row scene (sky, clouds, hills,
+  title) is drawn in half blocks at the height there is room for: 15 rows
+  at 100x30, its own 30 from 45 rows up; the text goes below, the
+  tombstone bottom right (nearer the edge on narrow screens, clear of the
+  copyright lines). The confirmation before New Campaign replaces a save
+  is a box over the scene. Rebuilt on a resize.
 - The campaign: `src/calendar.rs` (new campaign, calendar, refits, awards,
   the campaign's end), `src/day.rs` (a day of action: its actions,
   `PostEncounter`, the tank view and ammunition menu, the day loop),
@@ -136,7 +142,7 @@ The original screen is 149x61 cells of 8x12 pixels. Agreed with David
   8x12-pixel cells, with the place names at their scaled places (at
   100x30 it stays 85x25, in a window that follows the marker). Windows and
   pop-ups stay 100x30, centred. Not yet: bigger hexes on a big screen
-  (the encounter map is still 59x29), and the main menu.
+  (the encounter map is still 59x29).
 - Other windows at 100x30: crew panels 19 wide (a rank too long for one,
   "Private First Class", shows short); the ammunition menu packed into 30
   rows. Alt switched the ammunition menu's direction of move in the
@@ -208,8 +214,8 @@ about 10 seconds; debug takes about two minutes.
 1. Done: console layer, glyphs, art, main menu.
 2. Done: terminal layout agreed (see Screen size).
 3. Done: the data, the encounter, the campaign, the info windows.
-4. Done: saves. Next: the main menu at 100x30 with its tombstone, then
-   sound. The bones file already keeps high scores, the graveyard and
+4. Done: saves, the main menu with its tombstone. Next: bigger
+   encounter hexes on big screens, then sound. The bones file already keeps high scores, the graveyard and
    tutorial flags; journals are written to the data folder at the end of
    a campaign.
 5. Then Armoured Commander II (David, 2026-10-19), reusing what applies.
