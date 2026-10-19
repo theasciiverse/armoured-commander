@@ -105,7 +105,7 @@ impl Game {
         set_screen_size(w, h);
         let mut root = create_console(sw(), sh(), color::BLACK, color::WHITE, Align::Left);
         root.set_color_control(COLCTRL_1, KEY_HIGHLIGHT_COLOR, color::BLACK);
-        let mut overlay_con = create_console(MAP_CON_WIDTH, MAP_CON_HEIGHT, KEY_COLOR, color::BLACK, Align::Left);
+        let mut overlay_con = create_console(map_con_width(), map_con_height(), KEY_COLOR, color::BLACK, Align::Left);
         overlay_con.key = Some(KEY_COLOR);
         let mut c_overlay_con = create_console(C_MAP_MIN_WIDTH, C_MAP_CON_HEIGHT, KEY_COLOR, color::WHITE, Align::Left);
         c_overlay_con.key = Some(KEY_COLOR);
@@ -114,7 +114,7 @@ impl Game {
             scr,
             root,
             con: create_console(sw(), sh(), color::BLACK, color::WHITE, Align::Left),
-            map_con: create_console(MAP_CON_WIDTH, MAP_CON_HEIGHT, color::BLACK, color::BLACK, Align::Left),
+            map_con: create_console(map_con_width(), map_con_height(), color::BLACK, color::BLACK, Align::Left),
             overlay_con,
             map_info_con: create_console(30, 8, color::BLACK, color::WHITE, Align::Center),
             msg_con: create_console(MSG_CON_WIDTH, msg_con_height(), color::BLACK, color::WHITE, Align::Left),
@@ -191,6 +191,34 @@ impl Game {
         }
     }
 
+    /// Fit the battle to the hex size in use, after a resize or loading
+    /// a game saved at another size: the hexes' places, the map consoles,
+    /// and each unit at a new spot inside its own hex. Nothing changes if
+    /// the hexes are already where they belong.
+    pub fn rescale_battle(&mut self) {
+        let Some(b) = &self.battle else { return };
+        if b.maphexes.iter().all(|h| (h.x, h.y) == hex2screen(h.hx, h.hy)) && self.map_con.w == map_con_width() {
+            return;
+        }
+        log::info!("encounter map: hex size {}, {}x{}", hex_k(), map_con_width(), map_con_height());
+        for h in &mut self.btm().maphexes {
+            (h.x, h.y) = hex2screen(h.hx, h.hy);
+        }
+        for i in 0..self.bt().enemy_units.len() {
+            if self.u(i).alive {
+                let (x, y) = self.unit_char_location(i);
+                let u = self.um(i);
+                u.x = x;
+                u.y = y;
+            }
+        }
+        self.map_con = create_console(map_con_width(), map_con_height(), color::BLACK, color::BLACK, Align::Left);
+        self.overlay_con = create_console(map_con_width(), map_con_height(), KEY_COLOR, color::BLACK, Align::Left);
+        self.overlay_con.key = Some(KEY_COLOR);
+        self.paint_map_con();
+        self.update_map_overlay(false);
+    }
+
     /// The terminal changed size: lay the screen out again and redraw the
     /// encounter or day map under way. A window open at the time redraws
     /// itself at its next key.
@@ -202,6 +230,7 @@ impl Game {
         self.con = create_console(sw(), sh(), color::BLACK, color::WHITE, Align::Left);
         self.msg_con = create_console(MSG_CON_WIDTH, msg_con_height(), color::BLACK, color::WHITE, Align::Left);
         if self.battle.is_some() {
+            self.rescale_battle();
             self.update_msg_con();
             self.render_encounter(false);
         } else if self.campaign.day_in_progress && self.campaign.day_map.is_some() {
@@ -499,7 +528,7 @@ impl Game {
             let (x, y) = self.node_screen_pos(self.campaign.day_map().player_node);
             (x, y - 1)
         } else {
-            (MAP_X0 + map_con_x(), MAP_Y0 + map_con_y())
+            (map_x0() + map_con_x(), map_y0() + map_con_y())
         };
         self.show_label(x, y, message, Some(crewman));
         self.blit_con();

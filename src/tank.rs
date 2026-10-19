@@ -333,7 +333,7 @@ impl Game {
             }
         }
         if !hit_result {
-            self.show_label(MAP_X0 + map_con_x(), MAP_Y0 + map_con_y(), "No crewmembers affected.", None);
+            self.show_label(map_x0() + map_con_x(), map_y0() + map_con_y(), "No crewmembers affected.", None);
         }
         if self.roll_1d6() == 1 {
             self.tank_take_damage(None, true, false);

@@ -12,19 +12,40 @@ use crate::layout::*;
 use crate::model::*;
 use crate::ui::wrap;
 
+/// The six neighbours of a hex.
+const NEIGHBOURS: [(i32, i32); 6] = [(0, -1), (0, 1), (1, -1), (1, 0), (-1, 0), (-1, 1)];
+
+/// The cells of a hex's outline, relative to its centre.
+fn hex_outline() -> Vec<(i32, i32)> {
+    let mut cells = Vec::new();
+    for (dx, dy, text) in hex_rows() {
+        for (i, ch) in text.bytes().enumerate() {
+            if ch != b' ' {
+                cells.push((dx + i as i32, dy));
+            }
+        }
+    }
+    cells
+}
+
 /// The six neighbours of a hex and the cells of the edge shared with
-/// each, relative to the hex centre (see `layout::HEX_ROWS`).
-const HEX_EDGES: [((i32, i32), &[(i32, i32)]); 6] = [
-    ((0, -1), &[(-2, -2), (-1, -2), (0, -2), (1, -2), (2, -2), (3, -2)]),
-    ((0, 1), &[(-2, 2), (-1, 2), (0, 2), (1, 2), (2, 2), (3, 2)]),
-    ((1, -1), &[(4, -1), (5, 0)]),
-    ((1, 0), &[(5, 1), (4, 2)]),
-    ((-1, 0), &[(-3, -1), (-4, 0)]),
-    ((-1, 1), &[(-4, 1), (-3, 2)]),
-];
+/// each, relative to the hex centre: where the two outlines meet.
+fn hex_edges() -> Vec<((i32, i32), Vec<(i32, i32)>)> {
+    let ours = hex_outline();
+    let (x0, y0) = hex2screen(0, 0);
+    NEIGHBOURS
+        .iter()
+        .map(|&(hx, hy)| {
+            let (x, y) = hex2screen(hx, hy);
+            let theirs: Vec<(i32, i32)> = ours.iter().map(|&(cx, cy)| (cx + x - x0, cy + y - y0)).collect();
+            ((hx, hy), ours.iter().copied().filter(|c| theirs.contains(c)).collect())
+        })
+        .collect()
+}
 
 /// Where the spotting-sector highlight runs from and to, for each sector
-/// (`UpdateMapOverlay`), scaled from the original's to the new hexes.
+/// (`UpdateMapOverlay`), scaled from the original's to the smallest hexes;
+/// `spot_line` scales them to the hexes in use.
 const SPOT_LINES: [((i32, i32), (i32, i32)); 6] = [
     ((2, 1), (27, 7)),
     ((0, 2), (0, 14)),
@@ -34,16 +55,23 @@ const SPOT_LINES: [((i32, i32), (i32, i32)); 6] = [
     ((2, -1), (27, -7)),
 ];
 
+fn spot_line(sector: i32) -> ((i32, i32), (i32, i32)) {
+    let ((sx, sy), (ex, ey)) = SPOT_LINES[sector.rem_euclid(6) as usize];
+    let (dx, k) = (hex_dx(), hex_k());
+    ((sx * dx / 8, sy * k / 4), (ex * dx / 8, ey * k / 4))
+}
+
 /// `DrawHex`, for the terminal hexes: the hex's own cells take its
 /// background (its top edge row belongs to the hex above, as underscores
 /// sit at the bottom of their cells), the edge glyphs take the default
 /// foreground.
 pub fn draw_hex(con: &mut Console, x: i32, y: i32) {
-    for (dx, dy, text) in HEX_ROWS {
+    let top = -hex_k() / 2;
+    for (dx, dy, text) in hex_rows() {
         for (i, ch) in text.bytes().enumerate() {
             let cx = x + dx + i as i32;
             let cy = y + dy;
-            if dy == -2 {
+            if dy == top {
                 // top edge: draw the line, leave the cell's colour alone
                 con.put_char(cx, cy, ch);
             } else {
@@ -157,11 +185,12 @@ impl Game {
         }
 
         // zone boundaries: black where an edge separates two sectors
+        let edges = hex_edges();
         for h in &b.maphexes {
             if h.sector < 0 {
                 continue;
             }
-            for ((dx, dy), cells) in HEX_EDGES {
+            for ((dx, dy), cells) in &edges {
                 let Some(n) = b.maphexes.iter().find(|n| n.hx == h.hx + dx && n.hy == h.hy + dy) else { continue };
                 if n.sector < 0 || n.sector == h.sector {
                     continue;
@@ -180,12 +209,12 @@ impl Game {
     fn draw_player_tank(&mut self) {
         fn turret_char(facing: i32) -> (i32, i32, u8) {
             match facing {
-                0 => (MAP_X0 + 1, MAP_Y0 + 1, b'\\'),
-                1 => (MAP_X0, MAP_Y0 + 1, b'|'),
-                2 => (MAP_X0 - 1, MAP_Y0 + 1, b'/'),
-                3 => (MAP_X0 - 1, MAP_Y0 - 1, b'\\'),
-                4 => (MAP_X0, MAP_Y0 - 1, b'|'),
-                _ => (MAP_X0 + 1, MAP_Y0 - 1, b'/'),
+                0 => (map_x0() + 1, map_y0() + 1, b'\\'),
+                1 => (map_x0(), map_y0() + 1, b'|'),
+                2 => (map_x0() - 1, map_y0() + 1, b'/'),
+                3 => (map_x0() - 1, map_y0() - 1, b'\\'),
+                4 => (map_x0(), map_y0() - 1, b'|'),
+                _ => (map_x0() + 1, map_y0() - 1, b'/'),
             }
         }
         let phase = self.bt().phase.clone();
@@ -193,8 +222,8 @@ impl Game {
         let o = &mut self.overlay_con;
         let mc = &self.map_con;
         o.fg = color::WHITE;
-        o.put_char_bg(MAP_X0, MAP_Y0, named::RADIO_UNSET);
-        o.set_char_bg(MAP_X0, MAP_Y0, PLAYER_COLOR);
+        o.put_char_bg(map_x0(), map_y0(), named::RADIO_UNSET);
+        o.set_char_bg(map_x0(), map_y0(), PLAYER_COLOR);
 
         let (x, y, ch) = turret_char(t.turret_facing);
         o.put_char_ex(x, y, ch, color::WHITE, mc.char_bg(x, y));
@@ -204,12 +233,12 @@ impl Game {
             o.put_char_ex(x, y, ch, color::DARK_GREY, mc.char_bg(x, y));
         } else if phase == "Pivot Tank" {
             let (x, y, ch, white_fg) = match t.new_facing {
-                0 => (MAP_X0 + 3, MAP_Y0 + 1, 224, false),
-                1 => (MAP_X0, MAP_Y0 + 2, 31, true),
-                2 => (MAP_X0 - 3, MAP_Y0 + 1, 225, false),
-                3 => (MAP_X0 - 3, MAP_Y0 - 1, 224, true),
-                4 => (MAP_X0, MAP_Y0 - 2, 30, true),
-                _ => (MAP_X0 + 3, MAP_Y0 - 1, 225, true),
+                0 => (map_x0() + 3, map_y0() + 1, 224, false),
+                1 => (map_x0(), map_y0() + 2, 31, true),
+                2 => (map_x0() - 3, map_y0() + 1, 225, false),
+                3 => (map_x0() - 3, map_y0() - 1, 224, true),
+                4 => (map_x0(), map_y0() - 2, 30, true),
+                _ => (map_x0() + 3, map_y0() - 1, 225, true),
             };
             let bg = mc.char_bg(x, y);
             if white_fg {
@@ -297,10 +326,10 @@ impl Game {
         if b.phase == "Set Spot Sectors" {
             if let Some(c) = b.selected_crew {
                 let s = self.tank.crew[c].spot_sector;
-                let ((sx, sy), (ex, ey)) = SPOT_LINES[s.rem_euclid(6) as usize];
-                let ex = (MAP_X0 + ex).clamp(0, MAP_CON_WIDTH - 1);
-                let ey = (MAP_Y0 + ey).clamp(0, MAP_CON_HEIGHT - 1);
-                for (x, y) in get_line(MAP_X0 + sx, MAP_Y0 + sy, ex, ey) {
+                let ((sx, sy), (ex, ey)) = spot_line(s);
+                let ex = (map_x0() + ex).clamp(0, map_con_width() - 1);
+                let ey = (map_y0() + ey).clamp(0, map_con_height() - 1);
+                for (x, y) in get_line(map_x0() + sx, map_y0() + sy, ex, ey) {
                     let col = self.map_con.char_bg(x, y);
                     o.put_char_ex(x, y, 250, color::WHITE, col);
                 }
@@ -310,7 +339,7 @@ impl Game {
         if (b.phase == "Fire Main Gun" || b.phase == "Fire MGs") && !skip_los {
             if let Some(t) = b.target {
                 let u = &b.enemy_units[t];
-                let line = get_line(MAP_X0, MAP_Y0, u.x, u.y);
+                let line = get_line(map_x0(), map_y0(), u.x, u.y);
                 if line.len() > 3 {
                     for &(x, y) in &line[2..line.len() - 1] {
                         let col = self.map_con.char_bg(x, y);
@@ -320,7 +349,7 @@ impl Game {
             }
         }
 
-        Game::display_weather(o, &self.campaign.weather, MAP_CON_WIDTH - 10, 0);
+        Game::display_weather(o, &self.campaign.weather, map_con_width() - 10, 0);
 
         // round and phase: top left corner, clear of the hexes
         o.fg = color::WHITE;
@@ -349,7 +378,7 @@ impl Game {
         }
 
         if self.campaign.weather.fog || self.campaign.weather.precip == "Snow" {
-            o.print_ex_bg(0, MAP_CON_HEIGHT - 1, Align::Left, "Fog/Snow: close range only");
+            o.print_ex_bg(0, map_con_height() - 1, Align::Left, "Fog/Snow: close range only");
         }
     }
 
@@ -358,11 +387,11 @@ impl Game {
     /// panel under the map; returns its lines.
     pub fn map_info_lines(&self, mx: i32, my: i32) -> Vec<(String, Color)> {
         let mut lines = Vec::new();
-        if mx < map_con_x() || my < map_con_y() || my >= map_con_y() + MAP_CON_HEIGHT {
+        if mx < map_con_x() || my < map_con_y() || my >= map_con_y() + map_con_height() {
             return lines;
         }
         let (mx, my) = (mx - map_con_x(), my - map_con_y());
-        if mx == MAP_X0 && my == MAP_Y0 {
+        if mx == map_x0() && my == map_y0() {
             lines.push((format!("M4 Sherman \"{}\"", self.tank.name), color::WHITE));
             return lines;
         }
@@ -800,8 +829,8 @@ impl Game {
         Console::blit(&self.tank_con, 0, 0, TANK_CON_WIDTH, TANK_CON_HEIGHT, &mut self.con, TANK_CON_X, TANK_CON_Y);
         self.update_msg_con();
         Console::blit(&self.msg_con, 0, 0, MSG_CON_WIDTH, msg_con_height(), &mut self.con, MSG_CON_X, MSG_CON_Y);
-        Console::blit(&self.map_con, 0, 0, MAP_CON_WIDTH, MAP_CON_HEIGHT, &mut self.con, map_con_x(), map_con_y());
-        Console::blit(&self.overlay_con, 0, 0, MAP_CON_WIDTH, MAP_CON_HEIGHT, &mut self.con, map_con_x(), map_con_y());
+        Console::blit(&self.map_con, 0, 0, map_con_width(), map_con_height(), &mut self.con, map_con_x(), map_con_y());
+        Console::blit(&self.overlay_con, 0, 0, map_con_width(), map_con_height(), &mut self.con, map_con_x(), map_con_y());
 
         self.con.fg = color::DARK_GREY;
         self.con.vline(LEFT_W, 1, sh() - 1);

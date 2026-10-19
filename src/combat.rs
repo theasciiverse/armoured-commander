@@ -886,7 +886,7 @@ impl Game {
             _ => return,
         };
         let (tx, ty) = self.unit_screen_pos(t);
-        self.mg_animation(MAP_X0 + map_con_x(), MAP_Y0 + map_con_y(), tx, ty);
+        self.mg_animation(map_x0() + map_con_x(), map_y0() + map_con_y(), tx, ty);
         let (mg_fp, mg_rng) = match choice {
             "Co-ax" => {
                 self.tank.coax_mg_can_fire = false;
@@ -1119,7 +1119,7 @@ impl Game {
             self.play_sound(s);
         }
         let (tx, ty) = self.unit_screen_pos(t);
-        self.main_gun_animation(MAP_X0 + map_con_x(), MAP_Y0 + map_con_y(), tx, ty);
+        self.main_gun_animation(map_x0() + map_con_x(), map_y0() + map_con_y(), tx, ty);
 
         let area_fire = self.bt().area_fire;
         let ammo_load = self.tank.ammo_load.clone();
@@ -1477,9 +1477,9 @@ impl Game {
     }
 
     /// `Screen2Hex`: the hex under a map cell. The original took the first
-    /// hex within 3 cells of the point; with the smaller terminal hexes
-    /// this takes the nearest centre, measuring rows double as cells are
-    /// twice as tall as wide.
+    /// hex within 3 cells of the point; with the terminal hexes this takes
+    /// the nearest centre, measuring rows double as cells are twice as tall
+    /// as wide, within a distance that grows with the hexes.
     pub fn screen2hex(&self, x: i32, y: i32) -> Option<usize> {
         let b = self.bt();
         let mut best = None;
@@ -1492,7 +1492,8 @@ impl Game {
                 best = Some(n);
             }
         }
-        if best_d <= 30 { best } else { None }
+        let k = hex_k();
+        if best_d <= 30 * k * k / 16 { best } else { None }
     }
 
     /// `GetSmokeFactors`: smoke in the hexes along a line between two hexes.
@@ -1889,7 +1890,7 @@ impl Game {
         } else if roll <= ranges[4] {
             self.popup("Enemy artillery fire rains down on your position.");
             self.play_sound("arty_firing");
-            self.arty_strike_animation(MAP_X0 + map_con_x(), MAP_Y0 + map_con_y());
+            self.arty_strike_animation(map_x0() + map_con_x(), map_y0() + map_con_y());
             let result = self.roll_1d10();
             let num_ko = if result <= 6 {
                 1
@@ -2008,7 +2009,7 @@ impl Game {
 
     /// `UnitInfo`: right-click on a unit for its description.
     pub fn unit_info(&mut self, mx: i32, my: i32) {
-        if mx < map_con_x() || my < map_con_y() || my >= map_con_y() + MAP_CON_HEIGHT {
+        if mx < map_con_x() || my < map_con_y() || my >= map_con_y() + map_con_height() {
             return;
         }
         let (mx, my) = (mx - map_con_x(), my - map_con_y());

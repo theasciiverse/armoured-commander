@@ -655,6 +655,10 @@ impl Game {
     /// `InitEncounter`: start an encounter (or carry on a loaded one) and
     /// run it.
     pub fn init_encounter(&mut self, load: bool, counterattack: bool) {
+        if !load {
+            self.battle = Some(Battle::new(counterattack));
+        }
+        self.rescale_battle();
         if load {
             self.update_date_con();
             self.update_tank_con();
@@ -663,7 +667,6 @@ impl Game {
             self.update_map_overlay(false);
             self.render_encounter(false);
         } else {
-            self.battle = Some(Battle::new(counterattack));
             self.tank_set_deployment();
             for i in 0..self.tank.crew.len() {
                 self.crew_build_orders_list(i, false);
@@ -860,6 +863,7 @@ impl Game {
         self.campaign.exiting = false;
         self.tank = tank;
         self.battle = battle;
+        self.rescale_battle();
         log::info!("loaded: {} on {}", self.campaign.campaign_name, self.campaign.get_date(None));
         Ok(())
     }

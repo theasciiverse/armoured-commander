@@ -20,7 +20,8 @@ awards and promotions, the end of the campaign with its high score and
 journal file. Saved games (2026-10-19): saved at the original's points,
 including mid-battle, and picked up again by Continue on the main menu.
 The main menu (2026-10-19) is laid out for the terminal too, with its
-tombstone. Not yet: sound, bigger hexes on a big screen.
+tombstone. Bigger encounter hexes on big screens (2026-10-19). Not yet:
+sound.
 
 ## Source and licence
 
@@ -141,8 +142,14 @@ The original screen is 149x61 cells of 8x12 pixels. Agreed with David
   fill its space, in half blocks, in the proportions of the original's
   8x12-pixel cells, with the place names at their scaled places (at
   100x30 it stays 85x25, in a window that follows the marker). Windows and
-  pop-ups stay 100x30, centred. Not yet: bigger hexes on a big screen
-  (the encounter map is still 59x29).
+  pop-ups stay 100x30, centred. The encounter's hexes grow with the
+  screen: `layout::hex_k()` is the biggest of three sizes that fits, 4
+  (59x29 map), 6 (81x43, from about 122x44) or 8 (103x57, from about
+  144x58). Hexes are `k` rows apart and `3k/2+2` columns, the spacing at
+  which edges that slant a column a row are shared by neighbours. The hex
+  outline, the edges between sectors, unit spots inside a hex and the hex
+  under the pointer are all worked out from `k`; a battle carried over to
+  another size (a resize, a saved game) keeps each unit in its hex.
 - Other windows at 100x30: crew panels 19 wide (a rank too long for one,
   "Private First Class", shows short); the ammunition menu packed into 30
   rows. Alt switched the ammunition menu's direction of move in the
@@ -214,8 +221,8 @@ about 10 seconds; debug takes about two minutes.
 1. Done: console layer, glyphs, art, main menu.
 2. Done: terminal layout agreed (see Screen size).
 3. Done: the data, the encounter, the campaign, the info windows.
-4. Done: saves, the main menu with its tombstone. Next: bigger
-   encounter hexes on big screens, then sound. The bones file already keeps high scores, the graveyard and
+4. Done: saves, the main menu with its tombstone, bigger hexes. Next:
+   sound. The bones file already keeps high scores, the graveyard and
    tutorial flags; journals are written to the data folder at the end of
    a campaign.
 5. Then Armoured Commander II (David, 2026-10-19), reusing what applies.

@@ -13,10 +13,13 @@ pub const MIN_HEIGHT: i32 = 30;
 
 static SCREEN: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(((MIN_WIDTH as u32) << 16) | MIN_HEIGHT as u32);
 
-/// Set the screen size from the terminal's, never below 100x30.
+/// Set the screen size from the terminal's, never below 100x30, and with
+/// it the encounter's hex size.
 pub fn set_screen_size(w: i32, h: i32) {
     let (w, h) = (w.max(MIN_WIDTH), h.max(MIN_HEIGHT));
     SCREEN.store(((w as u32) << 16) | h as u32, std::sync::atomic::Ordering::Relaxed);
+    let k = HEX_SCALES.iter().copied().find(|&k| map_size(k).0 <= w - LEFT_W - 1 && map_size(k).1 <= h - 1).unwrap_or(4);
+    HEX_K.store(k, std::sync::atomic::Ordering::Relaxed);
 }
 
 /// The screen's width: the terminal's, at least 100 (`SCREEN_WIDTH`).
@@ -64,18 +67,58 @@ pub fn msg_con_height() -> i32 {
     sh() - MSG_CON_Y
 }
 
-pub const MAP_CON_WIDTH: i32 = 59;
-pub const MAP_CON_HEIGHT: i32 = 29;
-pub const MAP_X0: i32 = MAP_CON_WIDTH / 2;
-pub const MAP_Y0: i32 = MAP_CON_HEIGHT / 2;
+/// The encounter map's hex size, `k`: hexes are `k` rows apart down and
+/// `3k/2 + 2` columns across, each column half a hex lower than the one to
+/// its left (the original: 6 and 9). The edges slant a column a row, so
+/// that spacing is what lets neighbours share their edges. Cells are
+/// about twice as tall as wide, so the hexes keep their shape. The biggest
+/// that fits the screen is used: 4 at 100x30 (a 59x29 map), 6 (81x43) or
+/// 8 (103x57) on bigger screens.
+const HEX_SCALES: [i32; 3] = [8, 6, 4];
+static HEX_K: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32::new(4);
+
+pub fn hex_k() -> i32 {
+    HEX_K.load(std::sync::atomic::Ordering::Relaxed)
+}
+
+/// The map's size at hex size `k`: seven columns of hexes, seven rows.
+fn map_size(k: i32) -> (i32, i32) {
+    let dx = 3 * k / 2 + 2;
+    (6 * dx + 2 * k + 3, 7 * k + 1)
+}
+
+pub fn map_con_width() -> i32 {
+    map_size(hex_k()).0
+}
+
+pub fn map_con_height() -> i32 {
+    map_size(hex_k()).1
+}
+
+/// The map's centre, where the player's tank is.
+pub fn map_x0() -> i32 {
+    map_con_width() / 2
+}
+
+pub fn map_y0() -> i32 {
+    map_con_height() / 2
+}
+
+pub fn hex_dx() -> i32 {
+    3 * hex_k() / 2 + 2
+}
+
+pub fn hex_dy() -> i32 {
+    hex_k()
+}
 
 /// The hex map, centred in the space right of the left panel.
 pub fn map_con_x() -> i32 {
-    LEFT_W + 1 + (sw() - LEFT_W - 1 - MAP_CON_WIDTH) / 2
+    LEFT_W + 1 + (sw() - LEFT_W - 1 - map_con_width()) / 2
 }
 
 pub fn map_con_y() -> i32 {
-    1 + (sh() - 1 - MAP_CON_HEIGHT) / 2
+    1 + (sh() - 1 - map_con_height()) / 2
 }
 
 /// Window consoles (`menu_con`, `text_con`) are 100x30 (the original's
@@ -142,59 +185,103 @@ pub fn c_map_width_for_screen() -> i32 {
     c_map_window_w().clamp(C_MAP_MIN_WIDTH, C_MAP_MAX_WIDTH)
 }
 
-/// Hex spacing on the map: 8 columns across, 4 rows down, each column of
-/// hexes half a hex lower than the one to its left (the original: 9 and
-/// 6). Cells are twice as tall as wide, so the hexes keep their shape.
-pub const HEX_DX: i32 = 8;
-pub const HEX_DY: i32 = 4;
-
 /// `Hex2Screen`: centre of a hex on the map console.
 pub fn hex2screen(hx: i32, hy: i32) -> (i32, i32) {
-    (MAP_X0 + hx * HEX_DX, MAP_Y0 + hy * HEX_DY + hx * HEX_DY / 2)
+    (map_x0() + hx * hex_dx(), map_y0() + hy * hex_dy() + hx * hex_dy() / 2)
 }
 
-/// The rows of one hex, as (dx, dy, text) relative to its centre: a
-/// 10-wide, 5-tall hex whose top and bottom edges are underscores, so
-/// neighbours share their edges.
-pub const HEX_ROWS: [(i32, i32, &str); 5] = [
-    (-2, -2, "______"),
-    (-3, -1, "/      \\"),
-    (-4, 0, "/        \\"),
-    (-4, 1, "\\        /"),
-    (-3, 2, "\\______/"),
-];
+/// The rows of one hex, as (dx, dy, text) relative to its centre: `2k+2`
+/// wide and `k+1` tall, its top and bottom edges underscores, so that
+/// neighbours share their edges. At the smallest size:
+///
+/// ```text
+///   ______
+///  /      \
+/// /        \
+/// \        /
+///  \______/
+/// ```
+pub fn hex_rows() -> Vec<(i32, i32, String)> {
+    let half = hex_k() / 2;
+    let mut rows = vec![(-half, -half, "_".repeat((2 * half + 2) as usize))];
+    for r in -half + 1..=half {
+        let (left, upper) = if r <= 0 { (-2 * half - r, true) } else { (-2 * half + r - 1, false) };
+        let inner = (1 - left) - left - 1;
+        let fill = if r == half { "_" } else { " " };
+        let text = if upper {
+            format!("/{}\\", fill.repeat(inner as usize))
+        } else {
+            format!("\\{}/", fill.repeat(inner as usize))
+        };
+        rows.push((left, r, text));
+    }
+    rows
+}
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    /// Each hex size, set for the length of a check. The size is global
+    /// (it follows the screen), so the tests that change it take turns.
+    fn at_each_scale(check: impl Fn(i32)) {
+        static TURN: std::sync::Mutex<()> = std::sync::Mutex::new(());
+        let _turn = TURN.lock().unwrap_or_else(|e| e.into_inner());
+        for k in HEX_SCALES {
+            HEX_K.store(k, std::sync::atomic::Ordering::Relaxed);
+            check(k);
+        }
+        HEX_K.store(4, std::sync::atomic::Ordering::Relaxed);
+    }
+
+    #[test]
+    fn the_small_hex_is_the_one_drawn_before() {
+        at_each_scale(|k| {
+            if k == 4 {
+                let rows: Vec<(i32, i32, String)> = hex_rows();
+                let want = [(-2, -2, "______"), (-3, -1, "/      \\"), (-4, 0, "/        \\"), (-4, 1, "\\        /"), (-3, 2, "\\______/")];
+                for (got, want) in rows.iter().zip(want) {
+                    assert_eq!((got.0, got.1, got.2.as_str()), want);
+                }
+                assert_eq!((map_con_width(), map_con_height()), (59, 29));
+            }
+        });
+    }
+
     #[test]
     fn every_hex_fits_the_map() {
-        for h in &crate::defs::defs().hexes {
-            let (x, y) = hex2screen(h.0, h.1);
-            for (dx, dy, text) in HEX_ROWS {
-                assert!(x + dx >= 0 && x + dx + text.len() as i32 <= MAP_CON_WIDTH, "hex {h:?}");
-                assert!(y + dy >= 0 && y + dy < MAP_CON_HEIGHT, "hex {h:?}");
+        at_each_scale(|k| {
+            for h in &crate::defs::defs().hexes {
+                let (x, y) = hex2screen(h.0, h.1);
+                for (dx, dy, text) in hex_rows() {
+                    assert!(x + dx >= 0 && x + dx + text.len() as i32 <= map_con_width(), "k {k} hex {h:?}");
+                    assert!(y + dy >= 0 && y + dy < map_con_height(), "k {k} hex {h:?}");
+                }
             }
-        }
+        });
     }
 
     #[test]
     fn neighbours_share_edges() {
-        // the hex to the lower right starts its top edge on our middle row
-        let (x, y) = hex2screen(0, 0);
-        let (x2, y2) = hex2screen(1, 0);
-        assert_eq!((x2 - x, y2 - y), (8, 2));
-        // and the one below starts where our bottom edge is
-        let (_, y3) = hex2screen(0, 1);
-        assert_eq!(y3 - 2, y + 2);
+        at_each_scale(|k| {
+            // the hex below starts its top edge where our bottom edge is
+            let (x, y) = hex2screen(0, 0);
+            let (_, y3) = hex2screen(0, 1);
+            assert_eq!(y3 - k / 2, y + k / 2);
+            // the hex to the lower right: our right edge is its left edge
+            let (x2, y2) = hex2screen(1, 0);
+            let ours = hex_rows().into_iter().find(|r| r.1 == 1).unwrap();
+            let theirs = hex_rows().into_iter().find(|r| r.1 == 1 - (y2 - y)).unwrap();
+            assert_eq!(x + ours.0 + ours.2.len() as i32 - 1, x2 + theirs.0);
+        });
     }
 
     #[test]
     fn panels_fit_the_screen() {
         assert!(msg_con_height() >= 6);
-        assert_eq!(map_con_x() + MAP_CON_WIDTH, MIN_WIDTH);
-        assert_eq!(map_con_y() + MAP_CON_HEIGHT, MIN_HEIGHT);
+        assert_eq!(map_size(4), (59, 29));
+        assert_eq!(LEFT_W + 1 + map_size(4).0, MIN_WIDTH);
+        assert_eq!(1 + map_size(4).1, MIN_HEIGHT);
         assert_eq!(C_MAP_CON_X + C_MAP_MIN_WIDTH, MIN_WIDTH);
         assert_eq!(C_INFO_CON_Y + C_INFO_CON_H, MIN_HEIGHT);
     }

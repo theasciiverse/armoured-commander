@@ -33,7 +33,7 @@ impl Game {
 
     /// `ShowLabel` at the player's tank.
     pub fn player_label(&mut self, text: &str, crewman: Option<usize>) {
-        self.show_label(MAP_X0 + map_con_x(), MAP_Y0 + map_con_y(), text, crewman);
+        self.show_label(map_x0() + map_con_x(), map_y0() + map_con_y(), text, crewman);
     }
 
     /// `SetMorale`
@@ -584,7 +584,7 @@ impl Game {
             self.play_sound("german_mg_fire");
         }
         let (x, y) = self.unit_screen_pos(i);
-        self.mg_animation(x, y, MAP_X0 + map_con_x(), MAP_Y0 + map_con_y());
+        self.mg_animation(x, y, map_x0() + map_con_x(), map_y0() + map_con_y());
         self.um(i).acquired_player = 0;
         self.um(i).fired = true;
 
@@ -639,7 +639,7 @@ impl Game {
             self.play_sound(s);
         }
         let (x, y) = self.unit_screen_pos(i);
-        self.main_gun_animation(x, y, MAP_X0 + map_con_x(), MAP_Y0 + map_con_y());
+        self.main_gun_animation(x, y, map_x0() + map_con_x(), map_y0() + map_con_y());
         self.um(i).acquired_player = 0;
         self.um(i).fired = true;
 
@@ -712,13 +712,13 @@ impl Game {
             if let Some(s) = firing_sound(self.u(i).stats.str("main_gun")) {
                 self.play_sound(s);
             }
-            self.main_gun_animation(x, y, MAP_X0 + map_con_x(), MAP_Y0 + map_con_y());
+            self.main_gun_animation(x, y, map_x0() + map_con_x(), map_y0() + map_con_y());
         } else if class == "LW" {
             self.play_sound("german_rifle_fire");
-            self.mg_animation(x, y, MAP_X0 + map_con_x(), MAP_Y0 + map_con_y());
+            self.mg_animation(x, y, map_x0() + map_con_x(), map_y0() + map_con_y());
         } else if ["MG", "APC", "AC"].contains(&class.as_str()) {
             self.play_sound("german_mg_fire");
-            self.mg_animation(x, y, MAP_X0 + map_con_x(), MAP_Y0 + map_con_y());
+            self.mg_animation(x, y, map_x0() + map_con_x(), map_y0() + map_con_y());
         }
         self.um(i).fired = true;
 
@@ -1155,15 +1155,18 @@ impl Game {
     /// `GetCharLocation`: a free spot inside the unit's hex. The original
     /// compared `abs(unit.x + x)` where it meant the difference, so units
     /// could land on top of each other; fixed. Rows are those inside the
-    /// smaller terminal hex, with room for the terrain marks either side.
+    /// hex's edges, with room for the terrain marks either side.
     pub fn unit_char_location(&mut self, i: usize) -> (i32, i32) {
         if !self.u(i).alive {
             return (-1, -1);
         }
         let h = self.uhex(i).clone();
+        let half = hex_k() / 2;
+        let rows = hex_rows();
         for _ in 0..100 {
-            let y_mod = self.rng.int(-1, 1);
-            let (lo, hi) = if y_mod == -1 { (-1, 2) } else { (-2, 3) };
+            let y_mod = self.rng.int(-half + 1, half - 1);
+            let (left, _, text) = rows.iter().find(|r| r.1 == y_mod).expect("a row of the hex");
+            let (lo, hi) = (left + 2, left + text.len() as i32 - 3);
             let x_mod = self.rng.int(lo, hi);
             let (x, y) = (h.x + x_mod, h.y + y_mod);
             let taken = self
