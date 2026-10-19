@@ -178,12 +178,14 @@ Notes from the first look:
   73x51, campaign map window 90x57), so a new layout moves and resizes
   panels while their contents translate as they are.
 
-## Bugs in the original
+## Differences from the original
 
-The rule (2026-10-18): fix what only affects display or crashes; keep
-what changes the game's odds, and list it here for David to decide.
+The rule (2026-10-18): change what only affects display or stability;
+keep what changes the game's odds, and list it here for David to decide.
+In commits, the README and the catalog these are described as what the
+port does, never as faults in Scott's code.
 
-Fixed: `AttackPlayer` names a heard gun from one character ("7mm");
+Changed: `AttackPlayer` names a heard gun from one character ("7mm");
 `GetCharLocation` compares `abs(unit.x + x)`, so units in a hex could
 overlap; `GenerateName` meant to avoid duplicate names; `DepleteSmoke`
 removed from the list it looped over; HVAP/APDS against an unarmoured
@@ -191,14 +193,14 @@ spot crashed (now the AP table, as its comment says); a unit that dies
 during its own action no longer acts again; after an ambush knocks out
 the tank, the battle is cleared instead of lingering into the campaign.
 
-Fixed in the campaign: on a forest day the terrain table stops at 11, so
+Changed in the campaign: on a forest day the terrain table stops at 11, so
 a roll of 12 left an area with no terrain, which crashed when captured
 (`AwardCaptureVP`); it is marshland now, the table's last entry. In a
 counterattack, Tab listed a front-line area once for each enemy area
 beside it, and could stick on it. `CheckCommander` cannot end a campaign
 twice. The display settings carry over to a new campaign.
 
-Decided by David (2026-10-19): fixed, though they change the odds:
+Decided by David (2026-10-19): changed, though they change the odds:
 roads are built once per map (the original built a second network over
 the first) and before area resistance is rolled, so the road bonus (+2
 improved, +1 dirt) applies; the campaign files' date-based activation
@@ -213,7 +215,7 @@ knocks out the tank counts that encounter's VP.
 
 Kept as the original, to look at again after play (David, 2026-10-19):
 `AttackInfantry` returns nothing after a kill and `AttackPlayer` nothing
-after a panzerfaust, so the unit rolls another action. Fixing it makes
+after a panzerfaust, so the unit rolls another action. Changing it makes
 battles noticeably easier.
 
 ## Tests

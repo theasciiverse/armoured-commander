@@ -42,17 +42,21 @@ The rules, tables, art and sounds are the original's. What is different:
   window; the day map is generated at terminal proportions (the same
   length of day, about 40 areas instead of 55); Tab instead of Alt in the
   ammunition menu.
-- Display and crash fixes: names of heard guns, overlapping units in a
-  hex, duplicate crew names, smoke that did not clear, HVAP and APDS
-  against unarmoured targets, a unit acting again after it died, a
-  battle left behind after an ambush, forest terrain rolls of 12, a
-  counterattack's front-line list, a campaign that could end twice.
-- Fixes that change the odds: roads built once and before resistance is
-  rolled, so the road bonus applies; the campaign files' date-based
-  enemy activation applies; anti-tank guns use their own range table;
-  turret penetrations wound the turret crew; the gunner's Target Tracking
-  only helps his own fire; a repair breaks the part on a double six; an
-  ambush that knocks out the tank counts that encounter's VP.
+- Small differences in play and display: a heard gun is named by its
+  full calibre; units sharing a hex each have their own spot; crew names
+  are never repeated; smoke wears off every unit each round; HVAP and
+  APDS use the AP table against unarmoured targets; a unit knocked out
+  during its own action ends its turn there; the battle closes when an
+  ambush knocks out the tank; a forest day's terrain roll of 12 gives
+  marshland; a counterattack lists each front-line area once; a
+  campaign ends once.
+- Rules played a little differently: roads are built once, before
+  resistance is rolled, so the road bonus applies; the campaign files'
+  date-based enemy activation applies; anti-tank guns use their own
+  range table; turret penetrations wound the turret crew; the gunner's
+  Target Tracking applies to his own fire only; a repair breaks the part
+  on a double six; an ambush that knocks out the tank counts that
+  encounter's VP.
 - Steam is gone, and so is the screenshot key.
 
 ## Credits and licence

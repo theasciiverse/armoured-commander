@@ -149,5 +149,5 @@ jobs:
         run: |
           gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1 \
             || gh release create "$TAG" -R "$GITHUB_REPOSITORY" --title "Armoured Commander $TAG" \
-                 --notes "Armoured Commander, Gregory Adam Scott's World War II tank commander roguelike (github.com/sudasana/armcom, version ${TAG%%-av.*}), ported to the terminal in Rust and Ratatui for the Asciiverse catalog. Fixes to the original are listed in README.md."
+                 --notes "Armoured Commander, Gregory Adam Scott's World War II tank commander roguelike (github.com/sudasana/armcom, version ${TAG%%-av.*}), ported to the terminal in Rust and Ratatui for the Asciiverse catalog. Its README lists where it differs from the original."
           gh release upload "$TAG" dist/* -R "$GITHUB_REPOSITORY" --clobber
