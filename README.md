@@ -1,3 +1,16 @@
+> **Play it with Asciiverse.** With [av](https://asciiverse.sh), the Asciiverse
+> client:
+>
+> ```
+> av install armoured-commander
+> av play armoured-commander
+> ```
+>
+> Or download the archive for your system from this repository's Releases,
+> unpack it and run `./armcom` (`armcom.exe` on Windows).
+>
+> The original README follows.
+
 # Armoured Commander
 
 Gregory Adam Scott's World War II tank commander roguelike (2015 to 2017,
