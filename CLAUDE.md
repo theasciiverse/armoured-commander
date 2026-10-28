@@ -243,8 +243,8 @@ about 10 seconds; debug takes about two minutes.
 5. Release (2026-10-19): `.github/workflows/release.yml` builds glibc
    Linux on Ubuntu 22.04 (x86_64, aarch64), macOS and Windows (MSVC),
    archives `armoured-commander-<target>` with `armcom`, README.md and
-   LICENSE. Tags `v<original version>-av.<n>`; the first is to be
-   `v1.0.9-av.1`, not pushed yet (Actions blocked by billing since
+   LICENSE. Tags `v<version>`, the port's own version; `v1.0.0`
+   pushed 2026-10-28, its run refused (Actions blocked by billing since
    2026-10-12). Windows and macOS checked with `cargo check` in Docker
    only, not run. The catalog entry is `hub/catalog/armoured-commander.toml`
    and `.md`; the website mockup has a local Linux build in its
